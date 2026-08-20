@@ -166,6 +166,3 @@ pokeforge/
 
 ---
 
-## License
-
-MIT
