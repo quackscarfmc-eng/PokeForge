@@ -18,11 +18,13 @@ import {
   Plus,
   Pencil,
   Trash2,
+  Copy,
   Grid3x3,
 } from "lucide-react";
 import {
   useEntities,
   useDeleteEntity,
+  useDuplicateEntity,
   useProjectId,
 } from "@/components/shared/entity-hooks";
 import {
@@ -79,6 +81,7 @@ export function TypesView() {
   const projectId = useProjectId();
   const { data, isLoading } = useEntities<TypeRow>("types");
   const deleteMut = useDeleteEntity("types");
+  const duplicateMut = useDuplicateEntity("types");
   const types = data?.types ?? [];
 
   const { data: projectData } = useQuery({
@@ -226,6 +229,15 @@ export function TypesView() {
                       aria-label="Edit type"
                     >
                       <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="h-7 w-7 bg-white/20 text-white backdrop-blur hover:bg-blue-500/80"
+                      onClick={() => duplicateMut.mutate(t.id)}
+                      aria-label="Duplicate type"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       size="icon"

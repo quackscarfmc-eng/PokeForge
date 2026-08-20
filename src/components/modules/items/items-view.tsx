@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useEntities, useDeleteEntity } from "@/components/shared/entity-hooks";
+import { useEntities, useDeleteEntity, useDuplicateEntity } from "@/components/shared/entity-hooks";
 import { useAppStore } from "@/lib/store";
 import { useQuery } from "@tanstack/react-query";
 import { PageHeader, EmptyState, StatPill } from "@/components/shared/page-header";
@@ -23,6 +23,7 @@ import {
   Search,
   Pencil,
   Trash2,
+  Copy,
   Coins,
   Hash,
   Sparkles,
@@ -89,6 +90,7 @@ export function ItemsView() {
   const [deleteTarget, setDeleteTarget] = useState<Item | null>(null);
 
   const deleteItem = useDeleteEntity("items");
+  const duplicateItem = useDuplicateEntity("items");
 
   // Fetch project (for nextItemId prefill)
   const { data: projectData } = useQuery({
@@ -237,6 +239,15 @@ export function ItemsView() {
                     className="h-7 flex-1 gap-1 text-xs"
                   >
                     <Pencil className="h-3 w-3" /> Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => duplicateItem.mutate(item.id)}
+                    className="h-7 gap-1 border-blue-500/30 text-xs text-blue-600 hover:bg-blue-500/10 dark:text-blue-400"
+                    aria-label="Duplicate item"
+                  >
+                    <Copy className="h-3 w-3" />
                   </Button>
                   <Button
                     size="sm"

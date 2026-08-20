@@ -723,3 +723,40 @@ Stage Summary:
 - **3 new features**: Duplicate action for all 6 entity types, Onboarding banner, Skeleton loaders.
 - App remains at 15 views, 15 sidebar nav items.
 - Zero bugs, zero console errors, clean lint.
+
+---
+Task ID: 16 — Continuous Improvement Round 9 (Cron-triggered)
+Agent: main (webDevReview)
+
+Work Log:
+- Reviewed worklog.md: app has 15 views, 8 content types, duplicate on species + moves, onboarding banner, skeleton loaders, evolution chains, comparer, type calculator, global search, theme toggle, dashboard charts. Stable with zero console errors.
+- Performed QA via agent-browser: all 15 views navigated correctly, zero console errors, clean lint. Confirmed stable baseline.
+- Identified gap: duplicate buttons were only on species + moves views, but the API + hook existed for all 6 types. The Types, Abilities, Items, and Statuses views were missing the UI buttons.
+
+New features built:
+1. **Duplicate buttons on ALL 6 entity views**: added blue "Duplicate" buttons (Copy icon) to the hover actions of:
+   - Types view (card layout — button with blue hover on the type card)
+   - Abilities view (card layout — button with blue hover)
+   - Items view (card layout — button with blue hover)
+   - Statuses view (card layout — button with blue hover)
+   - Pokémon already had it (species-view.tsx)
+   - Moves already had it (moves-view.tsx)
+   - Each uses the existing `useDuplicateEntity(entity)` hook from entity-hooks.ts
+   - Verified: all 6 views now have duplicate buttons (Pokémon: 3, Moves: 1, Types: 1, Abilities: 1, Items: 1, Statuses: 1)
+
+Files updated (4):
+- `src/components/modules/types/types-view.tsx` — added Copy icon, useDuplicateEntity, duplicateMut, duplicate button
+- `src/components/modules/abilities/abilities-view.tsx` — added Copy icon, useDuplicateEntity, duplicateMut, duplicate button
+- `src/components/modules/items/items-view.tsx` — added Copy icon, useDuplicateEntity, duplicateItem, duplicate button
+- `src/components/modules/statuses/statuses-view.tsx` — added Copy icon, useDuplicateEntity, duplicateStatus, duplicate button
+
+QA Results (agent-browser verified):
+- All 15 views navigate correctly.
+- Duplicate buttons present on ALL 6 entity views: Pokémon (3), Moves (1), Types (1), Abilities (1), Items (1), Statuses (1).
+- Zero console errors throughout.
+- `bun run lint`: 0 errors, 0 warnings.
+
+Stage Summary:
+- **Duplicate action now on ALL 6 entity views** — the duplicate feature is complete across the entire app.
+- App remains at 15 views, 15 sidebar nav items.
+- Zero bugs, zero console errors, clean lint.

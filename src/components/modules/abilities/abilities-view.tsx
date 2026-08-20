@@ -19,6 +19,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  Copy,
   Search,
   BookOpen,
   Tag,
@@ -26,6 +27,7 @@ import {
 import {
   useEntities,
   useDeleteEntity,
+  useDuplicateEntity,
   useProjectId,
 } from "@/components/shared/entity-hooks";
 import { BUILTIN_ABILITIES } from "@/lib/poke-constants";
@@ -57,6 +59,7 @@ export function AbilitiesView() {
   const projectId = useProjectId();
   const { data, isLoading } = useEntities<AbilityRow>("abilities");
   const deleteMut = useDeleteEntity("abilities");
+  const duplicateMut = useDuplicateEntity("abilities");
   const abilities = data?.abilities ?? [];
 
   const { data: projectData } = useQuery({
@@ -179,6 +182,15 @@ export function AbilitiesView() {
                         aria-label="Edit ability"
                       >
                         <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 hover:bg-blue-500/10 hover:text-blue-500"
+                        onClick={() => duplicateMut.mutate(a.id)}
+                        aria-label="Duplicate ability"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         size="icon"
