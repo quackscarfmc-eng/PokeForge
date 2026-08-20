@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PageHeader, EmptyState, StatPill } from "@/components/shared/page-header";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { TypeBadge } from "@/components/shared/type-badge";
+import { ImportButton } from "@/components/shared/import-button";
 import { PokeballIcon } from "@/components/app/pokeball-icon";
 import {
   SpeciesEditor,
@@ -133,9 +134,12 @@ export function SpeciesView() {
         description="Design custom Pokémon species for your pokeemerald-expansion project. Each species covers base stats, types, abilities, learnsets, evolutions, and graphics references."
         icon={Flame}
         actions={
-          <Button onClick={openNew} className="bg-emerald-600 text-white hover:bg-emerald-700">
-            <Plus className="h-4 w-4" /> New Pokémon
-          </Button>
+          <div className="flex gap-2">
+            <ImportButton entityType="species" />
+            <Button onClick={openNew} className="bg-emerald-600 text-white hover:bg-emerald-700">
+              <Plus className="h-4 w-4" /> New Pokémon
+            </Button>
+          </div>
         }
       />
 

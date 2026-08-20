@@ -760,3 +760,49 @@ Stage Summary:
 - **Duplicate action now on ALL 6 entity views** — the duplicate feature is complete across the entire app.
 - App remains at 15 views, 15 sidebar nav items.
 - Zero bugs, zero console errors, clean lint.
+
+---
+Task ID: 17 — Continuous Improvement Round 10 (Cron-triggered)
+Agent: main (webDevReview)
+
+Work Log:
+- Reviewed worklog.md: app has 15 views, 8 content types, duplicate on all 6 views, onboarding banner, skeleton loaders, evolution chains, comparer, type calculator, global search, theme toggle, dashboard charts, recent activity. Stable with zero console errors.
+- Performed QA via agent-browser: all 15 views navigated correctly, zero console errors, clean lint. Confirmed stable baseline.
+- Identified feature opportunity: bulk JSON import for species and moves.
+
+New features built:
+1. **Bulk JSON Import** (API + reusable component):
+   - **API endpoint** (`POST /api/import`): accepts `{ projectId, entityType, data: [...] }` and bulk-creates entities. Supports species and moves. For each item: validates the constant name prefix, checks for duplicates (skips if exists), auto-assigns IDs from the project's next-ID counter, and bumps the counter. Returns `{ imported, skipped, errors }`.
+   - **Reusable ImportButton component** (`src/components/shared/import-button.tsx`): a drop-in button that opens a Dialog with:
+     - "Upload .json" file picker button
+     - "Load example" button that fills the textarea with a sample JSON template
+     - Large JSON textarea with syntax placeholder
+     - Import result panel showing imported/skipped counts + error list
+     - Validates JSON syntax before submitting
+   - Added to Pokémon view header (next to "New Pokémon") and Moves view header (next to "New move")
+   - Verified: Import button visible on both views, dialog opens, "Load example" fills textarea
+
+2. **Card hover-lift animation** (CSS): added `.card-hover-lift` class to globals.css that applies a translateY(-3px) + shadow on hover. Ready to apply to any card.
+
+Files created (2):
+- `src/app/api/import/route.ts` (Bulk import API)
+- `src/components/shared/import-button.tsx` (Reusable import button + dialog)
+
+Files updated (2):
+- `src/components/modules/species/species-view.tsx` — added ImportButton import + button in header
+- `src/components/modules/moves/moves-view.tsx` — added ImportButton import + button in header
+- `src/app/globals.css` — added card-hover-lift CSS
+
+QA Results (agent-browser verified):
+- All 15 views navigate correctly.
+- Pokémon view: "Import" button present next to "New Pokémon".
+- Moves view: "Import" button present next to "New move".
+- Import dialog: opens with "Import species" heading, "Upload .json" + "Load example" buttons, JSON textarea.
+- "Load example" fills the textarea with sample JSON.
+- Zero console errors throughout.
+- `bun run lint`: 0 errors, 0 warnings.
+
+Stage Summary:
+- **1 new feature**: Bulk JSON Import (API + reusable component, wired to species + moves).
+- App remains at 15 views, 15 sidebar nav items.
+- Zero bugs, zero console errors, clean lint.

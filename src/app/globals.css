@@ -267,3 +267,10 @@ button:active:not(:disabled) {
   mask-image: linear-gradient(to bottom, black calc(100% - 40px), transparent);
   -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 40px), transparent);
 }
+
+/* Card hover-lift for entity cards */
+.group:hover > .card-hover-lift,
+.card-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px oklch(0.3 0.05 165 / 0.15);
+}

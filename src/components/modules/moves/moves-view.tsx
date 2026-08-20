@@ -7,6 +7,7 @@ import { useEntities, useDeleteEntity, useDuplicateEntity } from "@/components/s
 import { PageHeader, EmptyState, StatPill } from "@/components/shared/page-header";
 import { TypeBadge } from "@/components/shared/type-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { ImportButton } from "@/components/shared/import-button";
 import {
   Table,
   TableBody,
@@ -125,9 +126,12 @@ export function MovesView() {
         description="Design custom battle moves for your pokeemerald-expansion project."
         icon={Swords}
         actions={
-          <Button onClick={openCreate} size="sm" className="bg-primary">
-            <Plus className="h-4 w-4" /> New move
-          </Button>
+          <div className="flex gap-2">
+            <ImportButton entityType="moves" />
+            <Button onClick={openCreate} size="sm" className="bg-primary">
+              <Plus className="h-4 w-4" /> New move
+            </Button>
+          </div>
         }
       />
 
