@@ -27,3 +27,8 @@ bun run dev
 6. Open http://localhost:3000 in your browser
 
 7. Do whatever really. See if it works, most likely won't. Can't stop me tho!
+
+Production Build:
+
+bun run build
+bun run start
