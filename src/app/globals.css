@@ -169,3 +169,101 @@
     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
 }
+
+/* ===== Animations & transitions ===== */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in-fast {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.52 0.12 160 / 0.4); }
+  50% { box-shadow: 0 0 0 6px oklch(0.52 0.12 160 / 0); }
+}
+
+.animate-fade-in { animation: fade-in 0.3s ease-out; }
+.animate-fade-in-fast { animation: fade-in-fast 0.15s ease-out; }
+.animate-scale-in { animation: scale-in 0.2s ease-out; }
+.animate-slide-in-right { animation: slide-in-right 0.25s ease-out; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+/* Card hover lift */
+.card-hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px oklch(0.3 0.05 165 / 0.12);
+}
+
+/* Shimmer skeleton */
+.shimmer-bg {
+  background: linear-gradient(90deg, transparent, oklch(0.5 0.05 160 / 0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Sticky footer gradient fade */
+.sticky-footer-fade {
+  background: linear-gradient(to bottom, transparent, var(--background) 30%);
+}
+
+/* Type badge hover effect */
+.type-badge-anim {
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.type-badge-anim:hover {
+  transform: scale(1.08);
+  filter: brightness(1.1);
+}
+
+/* Button press effect */
+button:active:not(:disabled) {
+  transform: scale(0.98);
+  transition: transform 0.05s ease;
+}
+
+/* Focus ring enhancement */
+*:focus-visible {
+  outline: 2px solid oklch(0.52 0.12 160);
+  outline-offset: 2px;
+}
+
+/* Trainer card gradient bar */
+.trainer-bar-single {
+  background: linear-gradient(90deg, #7AC74C, #3B82F6);
+}
+.trainer-bar-double {
+  background: linear-gradient(90deg, #EE8130, #C22E28);
+}
+
+/* Tab transition */
+[data-state="active"][role="tab"] {
+  transition: all 0.2s ease;
+}
+
+/* Dialog content entrance */
+[data-role="dialog-content"], [role="dialog"] > div {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* Scroll area fade */
+.scroll-fade-bottom {
+  mask-image: linear-gradient(to bottom, black calc(100% - 40px), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 40px), transparent);
+}

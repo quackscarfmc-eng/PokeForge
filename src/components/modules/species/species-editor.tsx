@@ -1083,6 +1083,73 @@ export function SpeciesEditor({
                     </p>
                   </div>
                 </div>
+
+                {/* Sprite upload */}
+                <div className="mt-4 rounded-lg border border-border bg-card/50 p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sprite preview</h3>
+                    {form.spriteFrontDataUrl && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 text-[10px]"
+                        onClick={() => update("spriteFrontDataUrl", null as never)}
+                      >
+                        <X className="mr-1 h-2.5 w-2.5" /> Remove
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="group relative flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/30 transition-colors hover:border-primary hover:bg-primary/5">
+                      {form.spriteFrontDataUrl ? (
+                        <img
+                          src={form.spriteFrontDataUrl}
+                          alt={form.speciesName}
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                          <PokeballIcon className="h-8 w-8 opacity-50" />
+                          <span className="text-[10px]">Click to upload</span>
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/png,image/gif,image/jpeg"
+                        className="absolute inset-0 cursor-pointer opacity-0"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 500 * 1024) {
+                            toast.error("Image too large (max 500 KB for preview)");
+                            return;
+                          }
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            update("spriteFrontDataUrl", reader.result as never);
+                            toast.success("Sprite uploaded — preview updated");
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <p>Upload a preview sprite (PNG/GIF/JPEG, ≤500KB).</p>
+                      <p className="text-[10px]">
+                        This is stored as a data URL for the in-app preview only. In your pokeemerald-expansion
+                        project, place the actual 4bpp indexed PNG in{" "}
+                        <code className="rounded bg-muted px-1 font-mono">
+                          graphics/pokemon/{folderHint || "..."}/anim_front.png
+                        </code>
+                        .
+                      </p>
+                      <p className="text-[10px] text-amber-600 dark:text-amber-400">
+                        GBA sprites should be ≤15 colors, 64×64 px.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
 
               {/* ===== Base Stats ===== */}

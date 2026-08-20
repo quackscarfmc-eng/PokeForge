@@ -15,6 +15,7 @@ export async function GET() {
           items: true,
           statuses: true,
           encounters: true,
+          trainers: true,
           changePlans: true,
           backups: true,
         },

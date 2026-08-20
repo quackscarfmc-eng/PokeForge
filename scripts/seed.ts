@@ -254,6 +254,95 @@ async function main() {
   }
   console.log("Encounters seeded:", encs.length);
 
+  // Trainers
+  await db.trainer.deleteMany({ where: { projectId: project.id } });
+  const trainer1 = await db.trainer.create({
+    data: {
+      projectId: project.id,
+      trainerClass: "TRAINER_CLASS_YOUNGSTER",
+      trainerName: "Joey",
+      introText: "I like shorts! They're comfy and easy to wear!",
+      defeatText: "My Rattata is top percentage!",
+      rematchNum: 1,
+      partySize: 1,
+      aiFlags: JSON.stringify(["AI_FLAG_CHECK_BAD_MOVE", "AI_FLAG_HP_AWARE"]),
+      doubleBattle: false,
+      itemsJson: JSON.stringify([]),
+      party: {
+        create: [{
+          speciesConstant: "SPECIES_EMBRIX",
+          level: 5,
+          iv: 6,
+          abilityConstant: "ABILITY_BLAZE",
+          heldItemConstant: "ITEM_ORAN_BERRY",
+          natureConstant: "NATURE_ADAMANT",
+          isShiny: false,
+          movesJson: JSON.stringify(["MOVE_SCRATCH", "MOVE_EMBER", "MOVE_GROWL"]),
+          ballConstant: "ITEM_POKE_BALL",
+          position: 0,
+        }],
+      },
+    },
+    include: { party: true },
+  });
+  console.log("Trainer:", trainer1.trainerName);
+
+  const trainer2 = await db.trainer.create({
+    data: {
+      projectId: project.id,
+      trainerClass: "TRAINER_CLASS_GYM_LEADER",
+      trainerName: "Astra",
+      introText: "The stars have foretold your arrival...",
+      defeatText: "Even the cosmos could not save me from defeat.",
+      rematchNum: 0,
+      partySize: 3,
+      aiFlags: JSON.stringify(["AI_FLAG_CHECK_BAD_MOVE", "AI_FLAG_CHECK_VIABILITY", "AI_FLAG_TRY_TO_FAINT", "AI_FLAG_HP_AWARE"]),
+      doubleBattle: false,
+      itemsJson: JSON.stringify(["ITEM_FULL_RESTORE", "ITEM_FULL_RESTORE"]),
+      party: {
+        create: [
+          {
+            speciesConstant: "SPECIES_STELLUXE",
+            level: 42,
+            iv: 20,
+            abilityConstant: "ABILITY_STARCALLER",
+            heldItemConstant: "ITEM_STARDUST_ORB",
+            natureConstant: "NATURE_MODEST",
+            isShiny: false,
+            movesJson: JSON.stringify(["MOVE_NEBULA_STRIKE", "MOVE_PSYCHIC", "MOVE_CALM_MIND", "MOVE_RECOVER"]),
+            ballConstant: "ITEM_ULTRA_BALL",
+            position: 0,
+          },
+          {
+            speciesConstant: "SPECIES_EMBRIX",
+            level: 40,
+            iv: 18,
+            abilityConstant: "ABILITY_BLAZE",
+            natureConstant: "NATURE_JOLLY",
+            isShiny: false,
+            movesJson: JSON.stringify(["MOVE_FLAMETHROWER", "MOVE_BITE", "MOVE_FLAME_WHEEL"]),
+            ballConstant: "ITEM_ULTRA_BALL",
+            position: 1,
+          },
+          {
+            speciesConstant: "SPECIES_STELLUXE",
+            level: 45,
+            iv: 25,
+            abilityConstant: "ABILITY_LEVITATE",
+            heldItemConstant: "ITEM_SITRUS_BERRY",
+            natureConstant: "NATURE_TIMID",
+            isShiny: true,
+            movesJson: JSON.stringify(["MOVE_NEBULA_STRIKE", "MOVE_FUTURE_SIGHT", "MOVE_LIGHT_SCREEN"]),
+            ballConstant: "ITEM_LUXURY_BALL",
+            position: 2,
+          },
+        ],
+      },
+    },
+    include: { party: true },
+  });
+  console.log("Trainer:", trainer2.trainerName);
+
   console.log("\n✅ Seed complete. Demo project:", project.id);
 }
 

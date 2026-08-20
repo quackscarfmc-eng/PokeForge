@@ -763,3 +763,99 @@ export const CANONICAL_TYPE_CHART: Record<string, Record<string, number>> = {
   TYPE_DARK: { TYPE_FIGHTING: 0.5, TYPE_GHOST: 2, TYPE_PSYCHIC: 2, TYPE_DARK: 0.5, TYPE_FAIRY: 0.5 },
   TYPE_FAIRY: { TYPE_POISON: 0.5, TYPE_STEEL: 0.5, TYPE_FIRE: 0.5, TYPE_FIGHTING: 2, TYPE_DRAGON: 2, TYPE_DARK: 2 },
 };
+
+// ---------------------------------------------------------------------------
+// Trainer classes (subset)
+// ---------------------------------------------------------------------------
+export const TRAINER_CLASSES = [
+  "TRAINER_CLASS_YOUNGSTER",
+  "TRAINER_CLASS_LASS",
+  "TRAINER_CLASS_CAMPER",
+  "TRAINER_CLASS_PICNICKER",
+  "TRAINER_CLASS_BUG_CATCHER",
+  "TRAINER_CLASS_SCHOOL_KID",
+  "TRAINER_CLASS_AQUA_GRUNT",
+  "TRAINER_CLASS_MAGMA_GRUNT",
+  "TRAINER_CLASS_RIVAL",
+  "TRAINER_CLASS_GYM_LEADER",
+  "TRAINER_CLASS_ELITE_FOUR",
+  "TRAINER_CLASS_CHAMPION",
+  "TRAINER_CLASS_TEAM_AQUA_LEADER",
+  "TRAINER_CLASS_TEAM_MAGMA_LEADER",
+  "TRAINER_CLASS_PSYCHIC",
+  "TRAINER_CLASS_HEX_MANIAC",
+  "TRAINER_CLASS_NINJA_BOY",
+  "TRAINER_CLASS_BATTLE_GIRL",
+  "TRAINER_CLASS_BREEDER",
+  "TRAINER_CLASS_EXPERT",
+  "TRAINER_CLASS_POKEFAN",
+  "TRAINER_CLASS_COLLECTOR",
+  "TRAINER_CLASS_RUIN_MANIAC",
+  "TRAINER_CLASS_TRIATHLETE",
+  "TRAINER_CLASS_RICH_BOY",
+  "TRAINER_CLASS_LADY",
+  "TRAINER_CLASS_BEAUTY",
+  "TRAINER_CLASS_AROMA_LADY",
+  "TRAINER_CLASS_GUITARIST",
+  "TRAINER_CLASS_BIRD_KEEPER",
+  "TRAINER_CLASS_FISHERMAN",
+  "TRAINER_CLASS_SWIMMER_M",
+  "TRAINER_CLASS_SWIMMER_F",
+  "TRAINER_CLASS_SAILOR",
+  "TRAINER_CLASS_HIKER",
+  "TRAINER_CLASS_KINDLER",
+  "TRAINER_CLASS_TEAM_ROCKET",
+];
+
+// ---------------------------------------------------------------------------
+// AI flags
+// ---------------------------------------------------------------------------
+export const AI_FLAGS = [
+  { constant: "AI_FLAG_CHECK_BAD_MOVE", name: "Check Bad Move" },
+  { constant: "AI_FLAG_CHECK_VIABILITY", name: "Check Viability" },
+  { constant: "AI_FLAG_TRY_TO_FAINT", name: "Try to Faint" },
+  { constant: "AI_FLAG_SET_UP_FIRST_TURN", name: "Set Up First Turn" },
+  { constant: "AI_FLAG_RISKY", name: "Risky" },
+  { constant: "AI_FLAG_PREFER_BATON_PASS", name: "Prefer Baton Pass" },
+  { constant: "AI_FLAG_DOUBLE_BATTLE", name: "Double Battle" },
+  { constant: "AI_FLAG_HP_AWARE", name: "HP Aware" },
+  { constant: "AI_FLAG_NEGATE_UNAWARE", name: "Negate Unaware" },
+  { constant: "AI_FLAG_WILL_SUICIDE", name: "Will Suicide" },
+  { constant: "AI_FLAG_HIT_COUNTER", name: "Hit Counter" },
+  { constant: "AI_FLAG_OBSERVE_ABILITY", name: "Observe Ability" },
+  { constant: "AI_FLAG_POWERFUL_STATUS", name: "Powerful Status" },
+  { constant: "AI_FLAG_SMART_SWITCHING", name: "Smart Switching" },
+  { constant: "AI_FLAG_OMNISCIENT", name: "Omniscient" },
+];
+
+// ---------------------------------------------------------------------------
+// Natures
+// ---------------------------------------------------------------------------
+export const NATURES = [
+  "NATURE_HARDY", "NATURE_LONELY", "NATURE_BRAVE", "NATURE_ADAMANT", "NATURE_NAUGHTY",
+  "NATURE_BOLD", "NATURE_DOCILE", "NATURE_RELAXED", "NATURE_IMPISH", "NATURE_LAX",
+  "NATURE_TIMID", "NATURE_HASTY", "NATURE_SERIOUS", "NATURE_JOLLY", "NATURE_NAIVE",
+  "NATURE_MODEST", "NATURE_MILD", "NATURE_QUIET", "NATURE_BASHFUL", "NATURE_RASH",
+  "NATURE_CALM", "NATURE_GENTLE", "NATURE_SASSY", "NATURE_CAREFUL", "NATURE_QUIRKY",
+];
+
+// ---------------------------------------------------------------------------
+// Pokeballs
+// ---------------------------------------------------------------------------
+export const POKEBALLS = [
+  "ITEM_POKE_BALL",
+  "ITEM_GREAT_BALL",
+  "ITEM_ULTRA_BALL",
+  "ITEM_MASTER_BALL",
+  "ITEM_PREMIER_BALL",
+  "ITEM_REPEAT_BALL",
+  "ITEM_TIMER_BALL",
+  "ITEM_NEST_BALL",
+  "ITEM_NET_BALL",
+  "ITEM_DIVE_BALL",
+  "ITEM_LUXURY_BALL",
+  "ITEM_HEAL_BALL",
+  "ITEM_QUICK_BALL",
+  "ITEM_DUSK_BALL",
+  "ITEM_CHERISH_BALL",
+];

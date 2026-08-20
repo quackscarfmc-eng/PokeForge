@@ -35,9 +35,62 @@ model Project {
   items          Item[]
   statuses       StatusCondition[]
   encounters     WildEncounter[]
+  trainers        Trainer[]
   changePlans    ChangePlan[]
   backups        Backup[]
   buildChecks    BuildCheck[]
+}
+
+// ---------------------------------------------------------------------------
+// Trainer — a trainer definition with a party of Pokémon (mirrors trainers.json)
+// ---------------------------------------------------------------------------
+model Trainer {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  trainerClass  String   // e.g. "TRAINER_CLASS_YOUNGSTER"
+  trainerName   String   // e.g. "Joey"
+  introText     String?
+  defeatText    String?
+  rematchDefeatText String?
+  rematchNum    Int      @default(0)
+  partySize     Int      @default(1)
+  aiFlags       String   @default("AI_FLAG_CHECK_BAD_MOVE") // JSON array
+  doubleBattle  Boolean  @default(false)
+  itemsJson     String   @default("[]") // JSON array of ITEM_* constants
+
+  party         TrainerPartyMember[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// TrainerPartyMember — one Pokémon in a trainer's party
+// ---------------------------------------------------------------------------
+model TrainerPartyMember {
+  id              String   @id @default(cuid())
+  trainerId       String
+  trainer         Trainer  @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+
+  speciesConstant String   // SPECIES_*
+  level           Int      @default(50)
+  iv              Int      @default(0)
+  abilityConstant String?
+  heldItemConstant String?
+  gender          String? // M | F | U
+  natureConstant  String?
+  isShiny         Boolean  @default(false)
+  movesJson       String   @default("[]") // JSON array of MOVE_* constants
+  ballConstant    String?  // ITEM_* pokeball
+  formId          Int?
+  position        Int      @default(0)
+
+  createdAt       DateTime @default(now())
+
+  @@index([trainerId])
 }
 
 // ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@ import {
   generateItemCode,
   generateStatusCode,
   generateEncountersCode,
+  generateTrainerCode,
 } from "@/lib/poke-codegen";
 
 // GET /api/export?projectId=... — produce a downloadable JSON bundle of all generated code
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
   const project = await db.project.findUnique({ where: { id: projectId } });
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
-  const [species, moves, types, abilities, items, statuses, encounters] = await Promise.all([
+  const [species, moves, types, abilities, items, statuses, encounters, trainers] = await Promise.all([
     db.species.findMany({ where: { projectId }, include: { learnsetMoves: { orderBy: { level: "asc" } }, evolutions: true } }),
     db.move.findMany({ where: { projectId } }),
     db.type.findMany({ where: { projectId } }),
@@ -27,6 +28,7 @@ export async function GET(req: NextRequest) {
     db.item.findMany({ where: { projectId } }),
     db.statusCondition.findMany({ where: { projectId } }),
     db.wildEncounter.findMany({ where: { projectId }, orderBy: [{ mapLabel: "asc" }, { method: "asc" }] }),
+    db.trainer.findMany({ where: { projectId }, include: { party: { orderBy: { position: "asc" } } } }),
   ]);
 
   const knownTypeConsts = [
@@ -141,6 +143,39 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // Trainers JSON
+  if (trainers.length > 0) {
+    files.push({
+      path: "patch/trainers.json",
+      content: "[\n" + trainers.map((t) => generateTrainerCode({
+        trainerClass: t.trainerClass,
+        trainerName: t.trainerName,
+        introText: t.introText,
+        defeatText: t.defeatText,
+        rematchDefeatText: t.rematchDefeatText,
+        rematchNum: t.rematchNum,
+        partySize: t.partySize,
+        aiFlags: JSON.parse(t.aiFlags || "[]"),
+        doubleBattle: t.doubleBattle,
+        items: JSON.parse(t.itemsJson || "[]"),
+        party: t.party.map((p) => ({
+          speciesConstant: p.speciesConstant,
+          level: p.level,
+          iv: p.iv,
+          abilityConstant: p.abilityConstant,
+          heldItemConstant: p.heldItemConstant,
+          gender: p.gender,
+          natureConstant: p.natureConstant,
+          isShiny: p.isShiny,
+          moves: JSON.parse(p.movesJson || "[]"),
+          ballConstant: p.ballConstant,
+          formId: p.formId,
+        })),
+      })).join(",\n") + "\n]",
+      language: "json",
+    });
+  }
+
   // README
   const readme = `# PokeForge export — ${project.name}
 
@@ -169,6 +204,6 @@ Safety Center → Backups. Roll back there if a build breaks.
     project: { name: project.name, expansionVersion: project.expansionVersion },
     readme,
     files,
-    stats: { species: species.length, moves: moves.length, types: types.length, abilities: abilities.length, items: items.length, statuses: statuses.length, encounters: encounters.length },
+    stats: { species: species.length, moves: moves.length, types: types.length, abilities: abilities.length, items: items.length, statuses: statuses.length, encounters: encounters.length, trainers: trainers.length },
   });
 }

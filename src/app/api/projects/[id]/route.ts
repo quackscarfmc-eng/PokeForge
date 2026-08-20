@@ -13,6 +13,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
     items: await db.item.count({ where: { projectId: id } }),
     statuses: await db.statusCondition.count({ where: { projectId: id } }),
     encounters: await db.wildEncounter.count({ where: { projectId: id } }),
+    trainers: await db.trainer.count({ where: { projectId: id } }),
     changePlans: await db.changePlan.count({ where: { projectId: id } }),
     backups: await db.backup.count({ where: { projectId: id } }),
     buildChecks: await db.buildCheck.count({ where: { projectId: id } }),

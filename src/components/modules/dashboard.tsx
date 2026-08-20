@@ -24,6 +24,7 @@ import {
   CheckCircle2,
   XCircle,
   MapPin,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore as useStore } from "@/lib/store";
@@ -36,6 +37,7 @@ const CARDS = [
   { id: "items", label: "Items", icon: Backpack, color: "#7AC74C" },
   { id: "statuses", label: "Status", icon: HeartCrack, color: "#A33EA1" },
   { id: "encounters", label: "Encounters", icon: MapPin, color: "#3B82F6" },
+  { id: "trainers", label: "Trainers", icon: Users, color: "#EC4899" },
 ] as const;
 
 export function DashboardView() {
@@ -80,7 +82,8 @@ export function DashboardView() {
     (counts.abilities ?? 0) +
     (counts.items ?? 0) +
     (counts.statuses ?? 0) +
-    (counts.encounters ?? 0);
+    (counts.encounters ?? 0) +
+    (counts.trainers ?? 0);
 
   const safetyScore = Math.min(
     100,
@@ -99,7 +102,7 @@ export function DashboardView() {
       />
 
       {/* Hero stats */}
-      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
+      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
         {CARDS.map((c) => {
           const Icon = c.icon;
           const n = counts[c.id] ?? 0;

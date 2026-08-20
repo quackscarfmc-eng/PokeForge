@@ -86,7 +86,7 @@ export function ExportView() {
       />
 
       {stats && (
-        <div className="mb-4 grid grid-cols-3 gap-2 md:grid-cols-7">
+        <div className="mb-4 grid grid-cols-3 gap-2 md:grid-cols-8">
           {[
             { k: "species", l: "Pokémon", c: "#EE8130" },
             { k: "moves", l: "Moves", c: "#C22E28" },
@@ -95,6 +95,7 @@ export function ExportView() {
             { k: "items", l: "Items", c: "#7AC74C" },
             { k: "statuses", l: "Status", c: "#A33EA1" },
             { k: "encounters", l: "Encounters", c: "#3B82F6" },
+            { k: "trainers", l: "Trainers", c: "#EC4899" },
           ].map((s) => (
             <div key={s.k} className="rounded-md border border-border bg-card p-3 text-center">
               <div className="text-2xl font-black" style={{ color: s.c }}>

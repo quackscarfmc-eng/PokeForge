@@ -14,6 +14,7 @@ import {
   Package,
   Settings,
   MapPin,
+  Users,
 } from "lucide-react";
 import { PokeballIcon } from "@/components/app/pokeball-icon";
 
@@ -26,6 +27,7 @@ const NAV: { id: ViewId; label: string; icon: typeof Flame; group: string }[] = 
   { id: "items", label: "Items", icon: Backpack, group: "Content" },
   { id: "statuses", label: "Status", icon: HeartCrack, group: "Content" },
   { id: "encounters", label: "Encounters", icon: MapPin, group: "Content" },
+  { id: "trainers", label: "Trainers", icon: Users, group: "Content" },
   { id: "safety", label: "Safety Center", icon: ShieldCheck, group: "Tools" },
   { id: "export", label: "Export", icon: Package, group: "Tools" },
   { id: "settings", label: "Settings", icon: Settings, group: "Tools" },

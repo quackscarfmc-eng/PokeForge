@@ -348,3 +348,78 @@ Stage Summary:
 - **1 new Prisma model**: WildEncounter.
 - **7 new files**, 16 files updated.
 - App now has 11 views (up from 10), 7 content types (up from 6), full safety workflow with visual plan review.
+
+---
+Task ID: 9 — Continuous Improvement Round 2 (Cron-triggered)
+Agent: main (webDevReview)
+
+Work Log:
+- Reviewed worklog.md: previous round built Dry-Run Plan Viewer, Stat Radar, Wild Encounters module, Command Palette, fixed 4 bugs. App was stable with 11 views, zero console errors.
+- Performed QA via agent-browser: all 11 views navigated correctly, zero console errors. Confirmed stable baseline.
+- Identified remaining focus areas from the task: (a) sprite upload (radar chart done but no actual sprite upload), (b) inline type chart editing, (c) trainer party module (new), (e) styling polish.
+
+New features built:
+1. **Trainer Party module** (`src/components/modules/trainers/trainers-view.tsx`): a complete new content type for designing NPC trainers. Features:
+   - Card grid showing trainer name, class, party size, double-battle badge, rematch badge, AI flag badges, and a visual party preview (6 colored circles with species initials, amber border for shiny)
+   - Full Sheet editor with 5 sections: Identity (name, class, double battle switch), Dialogue (intro/defeat/rematch text + rematch number), AI Flags (15 checkbox cards from AI_FLAGS constant), Items (tag input), Party (add/remove Pokémon with species, level, IV, nature, held item, ball, shiny toggle, 4 move slots)
+   - "Preview JSON" button on each card generates the trainers.json snippet via `generateTrainerCode()`
+   - "Copy JSON" button in the editor footer
+   - Safe/force delete via ConfirmDialog
+   - Added to sidebar nav, dashboard (8th stat card), export route (trainers.json file), command palette
+   - Seeded 2 trainers: Joey (Youngster, 1 Pokémon) + Astra (Gym Leader, 3 Pokémon incl. a shiny Stelluxe)
+
+2. **Sprite upload** (in species editor Identity tab): a drag-and-drop-friendly file upload zone that:
+   - Accepts PNG/GIF/JPEG up to 500KB
+   - Stores as a data URL for in-app preview (shows in the editor header + species cards)
+   - Shows a pokeball placeholder when no sprite uploaded
+   - "Remove" button to clear the sprite
+   - Contextual guidance: explains the preview is for display only, the actual 4bpp indexed PNG goes in `graphics/pokemon/<folder>/anim_front.png`
+   - GBA constraints note: ≤15 colors, 64×64 px
+
+3. **Styling polish** (globals.css): added comprehensive animation system:
+   - `fade-in`, `fade-in-fast`, `scale-in`, `slide-in-right` keyframe animations
+   - `pulse-glow` for safety badges
+   - `shimmer` skeleton loading effect
+   - `card-hover-lift` transition (translateY + shadow)
+   - Button press effect (scale 0.98 on active)
+   - Enhanced focus-visible ring (emerald outline)
+   - Dialog entrance animation
+   - Scroll area fade mask
+   - Trainer card gradient bars (single/double battle)
+
+Files created (3):
+- `src/components/modules/trainers/trainers-view.tsx` (Trainer module with editor)
+- `src/app/api/trainers/route.ts` (GET/POST)
+- `src/app/api/trainers/[id]/route.ts` (PATCH/DELETE)
+
+Files updated (12):
+- `prisma/schema.prisma` — added Trainer + TrainerPartyMember models
+- `src/lib/poke-constants.ts` — added TRAINER_CLASSES, AI_FLAGS, NATURES, POKEBALLS
+- `src/lib/poke-codegen.ts` — added generateTrainerCode + validateTrainer
+- `src/app/api/export/route.ts` — added trainers.json export
+- `src/app/api/projects/route.ts` + `[id]/route.ts` — added trainers count
+- `src/components/app/sidebar.tsx` — added Trainers nav item
+- `src/components/app/command-palette.tsx` — added Trainers to palette
+- `src/components/modules/dashboard.tsx` — added 8th stat card + Users icon
+- `src/components/modules/export/export-view.tsx` — added trainers stat
+- `src/components/modules/species/species-editor.tsx` — added sprite upload section
+- `src/app/page.tsx` — wired TrainersView
+- `src/lib/store.ts` — added "trainers" to ViewId
+- `src/app/globals.css` — added animation system
+- `scripts/seed.ts` — added 2 trainers to demo
+
+QA Results (agent-browser verified):
+- All 12 views navigate correctly (Dashboard, Pokémon, Moves, Types, Abilities, Items, Status, Encounters, Trainers, Safety Center, Export, Settings).
+- Dashboard shows 8 stat cards: 2 Pokémon, 1 Moves, 1 Types, 1 Abilities, 1 Items, 1 Status, 5 Encounters, 2 Trainers.
+- Trainers view: 2 trainer cards (Joey + Astra) with party previews, AI flag badges, and Preview JSON buttons.
+- Trainer editor: opens with Identity, Dialogue, AI Flags, Items, Party sections. "Add Pokémon" adds a party member with species/level/IV/nature/moves fields.
+- Species editor: sprite upload section present in Identity tab (1 file input, "SPRITE PREVIEW" heading, "Click to upload" text).
+- Zero console errors throughout.
+- `bun run lint`: 0 errors, 0 warnings.
+
+Stage Summary:
+- **2 new features**: Trainer Party module (8th content type), Sprite upload in species editor.
+- **1 new Prisma model group**: Trainer + TrainerPartyMember.
+- **Styling polish**: comprehensive animation system (fade, scale, slide, shimmer, glow, hover-lift, button-press, focus-ring).
+- App now has **12 views** (up from 11), **8 content types** (up from 7), **12 sidebar nav items**.
+- Zero bugs, zero console errors, clean lint.
