@@ -298,3 +298,53 @@ Stage Summary:
 - **Lint**: 0 errors / 0 warnings.
 - **Dev server**: running on :3000, HTTP 200.
 - Next: set up the 15-minute webDevReview cron job for continuous improvement.
+
+---
+Task ID: 8 — Continuous Improvement Round 1 (Cron-triggered)
+Agent: main (webDevReview)
+
+Work Log:
+- Reviewed worklog.md and assessed project status: app is production-ready with 10 views, full CRUD for 6 entity types, safety workflow. Identified gaps from focus areas: (a) dry-run plan viewer had NO UI, (b) no stat radar chart, (c) no wild encounters module, (d) no keyboard shortcuts.
+- Performed QA via agent-browser — found 3 bugs:
+  1. **Duplicate ability constants** in BUILTIN_ABILITIES (NATURAL_CURE, FORECAST, THICK_FAT, WIND_RIDER, HOSPITALITY appeared twice) → React key collision console errors. Fixed by removing the 5 duplicate entries from poke-constants.ts.
+  2. **Codegen double-comma bug**: `.evolutions = EVOLUTION({EVO_NONE}),,` — the evoStr template added trailing commas AND the outer template added another. Fixed by removing trailing commas from evoStr and using `.join(",\n")`.
+  3. **Gender ratio codegen bug**: `PERCENT_FEMALE(0)` for genderless (255) — wrong formula. Fixed to emit `MON_GENDERLESS` when genderRatio >= 255, and corrected the percent formula to `genderRatio * 100 / 254`.
+  4. **Validation false-positive**: validator rejected builtin abilities like ABILITY_LEVITATE because knownAbilities only included custom abilities, not BUILTIN_ABILITIES. Fixed /api/validate and /api/plan to merge BUILTIN_ABILITIES into knownAbilities.
+
+New features built:
+- **Dry-Run Plan Viewer** (`src/components/shared/plan-viewer.tsx`): a full Dialog modal that consumes the /api/plan endpoint. Shows step-by-step file changes with risk levels (low/medium/high color-coded), errors (red, blocks apply), warnings (amber), and a "Generated code" tab with copy button. "Apply changes" button calls /api/apply with auto-backup. Wired into the species editor footer as a "Dry-Run Plan" button (amber-styled) between Validate and Preview code.
+- **Stat Radar Chart** (`src/components/shared/stat-radar.tsx`): an SVG hexagonal radar chart showing the 6 base stats with colored axes, grid rings at 25/50/75/100%, and a filled polygon. Supports an optional `compareStats` for overlay comparison. Inserted into the species editor's Base Stats tab below the stat bars.
+- **Wild Encounters module** (`src/components/modules/encounters/encounters-view.tsx`): a complete new module for designing wild Pokémon encounters. Features:
+  - Grouped-by-map card layout (Route 101, Route 102, Petalburg Woods, etc.)
+  - Method icons (grass/water/rock_smash/fishing) with type colors
+  - Add/edit/delete encounters via a Sheet editor (map label, location, method, species, min/max level, encounter rate, held item, form ID)
+  - "Preview JSON" button generates the wild_encounters.json code via `generateEncountersCode()`
+  - Search by location/map/species
+  - Added to sidebar nav, dashboard stat cards (7 cards now), export route (wild_encounters.json file), and command palette
+- **Command Palette** (`src/components/app/command-palette.tsx`): a ⌘K / Ctrl+K command palette with fuzzy search over all views. Also supports number keys 1-0 for quick navigation. Accessible via a ⌘K button in the Topbar.
+- **Prisma schema**: added WildEncounter model (mapLabel, location, method, speciesConstant, minLevel, maxLevel, encounterRate, heldItemConstant, formId).
+- **Seed script**: added 5 wild encounters to the demo project (Route 101/102 + Petalburg Woods).
+
+Files created (7):
+- `src/components/shared/plan-viewer.tsx` (Dry-Run Plan Viewer modal + usePlanWorkflow hook)
+- `src/components/shared/stat-radar.tsx` (SVG radar chart)
+- `src/components/app/command-palette.tsx` (⌘K command palette)
+- `src/components/modules/encounters/encounters-view.tsx` (Wild Encounters module)
+- `src/app/api/encounters/route.ts` (GET/POST)
+- `src/app/api/encounters/[id]/route.ts` (PATCH/DELETE)
+- Updated: `prisma/schema.prisma`, `src/lib/poke-constants.ts`, `src/lib/poke-codegen.ts`, `src/app/api/validate/route.ts`, `src/app/api/plan/route.ts`, `src/app/api/export/route.ts`, `src/app/api/projects/route.ts`, `src/app/api/projects/[id]/route.ts`, `src/components/app/sidebar.tsx`, `src/components/app/topbar.tsx`, `src/components/app/command-palette.tsx`, `src/components/modules/species/species-editor.tsx`, `src/components/modules/dashboard.tsx`, `src/components/modules/export/export-view.tsx`, `src/app/page.tsx`, `src/lib/store.ts`, `scripts/seed.ts`.
+
+QA Results (agent-browser verified):
+- All 11 views navigate correctly (Dashboard, Pokémon, Moves, Types, Abilities, Items, Status, Encounters, Safety Center, Export, Settings).
+- Species editor: 7 tabs, radar chart renders (5 SVG polygons), Dry-Run Plan button opens modal showing "Ready to apply" with 8 steps.
+- Encounters view: 5 seeded encounters across 3 maps, Preview JSON works.
+- Command palette: ⌘K opens dialog, number keys navigate.
+- Zero console errors (duplicate key errors fixed, validation false-positives fixed).
+- `bun run lint`: 0 errors, 0 warnings.
+
+Stage Summary:
+- **4 bugs fixed**: duplicate abilities, codegen double-comma, gender ratio formula, validation false-positive on builtin abilities.
+- **4 new features**: Dry-Run Plan Viewer (completes the safety workflow UI), Stat Radar Chart, Wild Encounters module (new content type), Command Palette (⌘K keyboard shortcuts).
+- **1 new Prisma model**: WildEncounter.
+- **7 new files**, 16 files updated.
+- App now has 11 views (up from 10), 7 content types (up from 6), full safety workflow with visual plan review.

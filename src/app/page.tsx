@@ -10,10 +10,12 @@ import { TypesView } from "@/components/modules/types/types-view";
 import { AbilitiesView } from "@/components/modules/abilities/abilities-view";
 import { ItemsView } from "@/components/modules/items/items-view";
 import { StatusesView } from "@/components/modules/statuses/statuses-view";
+import { EncountersView } from "@/components/modules/encounters/encounters-view";
 import { SafetyView } from "@/components/modules/safety/safety-view";
 import { ExportView } from "@/components/modules/export/export-view";
 import { SettingsView } from "@/components/modules/settings/settings-view";
 import { ProjectPicker } from "@/components/app/project-picker";
+import { CommandPalette } from "@/components/app/command-palette";
 
 export default function Home() {
   const { currentProjectId, view, setView, _hasHydrated } = useAppStore();
@@ -50,6 +52,7 @@ export default function Home() {
               {view === "abilities" && <AbilitiesView />}
               {view === "items" && <ItemsView />}
               {view === "statuses" && <StatusesView />}
+              {view === "encounters" && <EncountersView />}
               {view === "safety" && <SafetyView />}
               {view === "export" && <ExportView />}
               {view === "settings" && <SettingsView />}
@@ -57,6 +60,7 @@ export default function Home() {
           )}
         </main>
       </div>
+      <CommandPalette />
     </div>
   );
 }

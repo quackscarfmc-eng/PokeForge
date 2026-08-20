@@ -34,9 +34,35 @@ model Project {
   abilities      Ability[]
   items          Item[]
   statuses       StatusCondition[]
+  encounters     WildEncounter[]
   changePlans    ChangePlan[]
   backups        Backup[]
   buildChecks    BuildCheck[]
+}
+
+// ---------------------------------------------------------------------------
+// WildEncounter — a wild Pokémon encounter entry (mirrors wild_encounters.json)
+// ---------------------------------------------------------------------------
+model WildEncounter {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  mapLabel    String   // e.g. "MAP_B101_ROUTE101"
+  location    String   // friendly name e.g. "Route 101"
+  method      String   // grass | water | rock_smash | fishing_old | fishing_good | fishing_super
+  speciesConstant String // SPECIES_*
+  minLevel    Int      @default(2)
+  maxLevel    Int      @default(5)
+  encounterRate Int    @default(20) // percentage chance
+  heldItemConstant String? // optional ITEM_*
+  formId      Int?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([mapLabel])
 }
 
 // ---------------------------------------------------------------------------

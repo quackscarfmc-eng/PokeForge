@@ -16,7 +16,7 @@ import {
   type ChangePlan,
   type ChangeStep,
 } from "@/lib/poke-codegen";
-import { POKEMON_TYPES } from "@/lib/poke-constants";
+import { POKEMON_TYPES, BUILTIN_ABILITIES } from "@/lib/poke-constants";
 
 // POST /api/plan — generate a dry-run change plan (no writes)
 export async function POST(req: NextRequest) {
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       db.move.findMany({ where: { projectId }, select: { constantName: true } }),
     ]);
     const knownTypes = [...POKEMON_TYPES.map((t) => t.constant), ...types.map((t) => t.constantName)];
-    const knownAbilities = abilities.map((a) => a.constantName);
+    const knownAbilities = [...BUILTIN_ABILITIES.map((a) => a.constant), ...abilities.map((a) => a.constantName)];
     const knownMoves = moves.map((m) => m.constantName);
 
     let entityConstant = "";

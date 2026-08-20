@@ -146,8 +146,6 @@ export const BUILTIN_ABILITIES: { constant: string; name: string }[] = [
   { constant: "ABILITY_CUTE_CHARM", name: "Cute Charm" },
   { constant: "ABILITY_PLUS", name: "Plus" },
   { constant: "ABILITY_MINUS", name: "Minus" },
-  { constant: "ABILITY_NATURAL_CURE", name: "Natural Cure" },
-  { constant: "ABILITY_FORECAST", name: "Forecast" },
   { constant: "ABILITY_STICKY_HOLD", name: "Sticky Hold" },
   { constant: "ABILITY_SHED_SKIN", name: "Shed Skin" },
   { constant: "ABILITY_GUTS", name: "Guts" },
@@ -205,7 +203,6 @@ export const BUILTIN_ABILITIES: { constant: string; name: string }[] = [
   { constant: "ABILITY_STORM_DRAIN", name: "Storm Drain" },
   { constant: "ABILITY_ICE_BODY", name: "Ice Body" },
   { constant: "ABILITY_FORECAST", name: "Forecast" },
-  { constant: "ABILITY_THICK_FAT", name: "Thick Fat" },
   { constant: "ABILITY_FLOWER_GIFT", name: "Flower Gift" },
   { constant: "ABILITY_BAD_DREAMS", name: "Bad Dreams" },
   { constant: "ABILITY_PICKPOCKET", name: "Pickpocket" },
@@ -333,7 +330,6 @@ export const BUILTIN_ABILITIES: { constant: string; name: string }[] = [
   { constant: "ABILITY_WIND_RIDER", name: "Wind Rider" },
   { constant: "ABILITY_GUARD_DOG", name: "Guard Dog" },
   { constant: "ABILITY_ROCKY_PAYLOAD", name: "Rocky Payload" },
-  { constant: "ABILITY_WIND_RIDER", name: "Wind Rider" },
   { constant: "ABILITY_ZERO_TO_HERO", name: "Zero to Hero" },
   { constant: "ABILITY_COMMANDER", name: "Commander" },
   { constant: "ABILITY_ELECTROMORPHOSIS", name: "Electromorphosis" },
@@ -351,7 +347,6 @@ export const BUILTIN_ABILITIES: { constant: string; name: string }[] = [
   { constant: "ABILITY_SHARPNESS", name: "Sharpness" },
   { constant: "ABILITY_GUARDIAN_OF_ALOLA", name: "Guardian of Alola" },
   { constant: "ABILITY_URSINE_FURY", name: "Ursine Fury" },
-  { constant: "ABILITY_HOSPITALITY", name: "Hospitality" },
 ];
 
 // ---------------------------------------------------------------------------

@@ -11,6 +11,7 @@ export type ViewId =
   | "abilities"
   | "items"
   | "statuses"
+  | "encounters"
   | "safety"
   | "export"
   | "settings";

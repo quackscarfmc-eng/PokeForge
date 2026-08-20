@@ -14,6 +14,7 @@ export async function GET() {
           abilities: true,
           items: true,
           statuses: true,
+          encounters: true,
           changePlans: true,
           backups: true,
         },

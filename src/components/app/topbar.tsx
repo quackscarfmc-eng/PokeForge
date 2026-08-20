@@ -2,7 +2,7 @@
 
 import { useAppStore } from "@/lib/store";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ShieldCheck, ShieldAlert, GitBranch } from "lucide-react";
+import { ChevronDown, ShieldCheck, ShieldAlert, GitBranch, Command as CommandIcon } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -73,6 +73,15 @@ export function Topbar() {
       )}
 
       <div className="flex-1" />
+
+      <button
+        onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
+        className="flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        title="Open command palette (⌘K)"
+      >
+        <CommandIcon className="h-3 w-3" />
+        <kbd className="hidden font-sans text-[10px] sm:inline">⌘K</kbd>
+      </button>
 
       {currentProjectId && (
         <div className="hidden items-center gap-2 md:flex">

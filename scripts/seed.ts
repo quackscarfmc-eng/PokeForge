@@ -240,6 +240,20 @@ async function main() {
     },
   });
 
+  // Wild encounters
+  await db.wildEncounter.deleteMany({ where: { projectId: project.id } });
+  const encs = [
+    { mapLabel: "MAP_R101_ROUTE101", location: "Route 101", method: "grass", speciesConstant: "SPECIES_EMBRIX", minLevel: 2, maxLevel: 5, encounterRate: 20 },
+    { mapLabel: "MAP_R101_ROUTE101", location: "Route 101", method: "grass", speciesConstant: "SPECIES_STELLUXE", minLevel: 3, maxLevel: 4, encounterRate: 1 },
+    { mapLabel: "MAP_R102_ROUTE102", location: "Route 102", method: "grass", speciesConstant: "SPECIES_EMBRIX", minLevel: 4, maxLevel: 7, encounterRate: 15 },
+    { mapLabel: "MAP_R102_ROUTE102", location: "Route 102", method: "water", speciesConstant: "SPECIES_STELLUXE", minLevel: 5, maxLevel: 10, encounterRate: 5 },
+    { mapLabel: "MAP_B101_PETALBURG_WOODS", location: "Petalburg Woods", method: "grass", speciesConstant: "SPECIES_STELLUXE", minLevel: 8, maxLevel: 12, encounterRate: 4 },
+  ];
+  for (const e of encs) {
+    await db.wildEncounter.create({ data: { projectId: project.id, ...e } });
+  }
+  console.log("Encounters seeded:", encs.length);
+
   console.log("\n✅ Seed complete. Demo project:", project.id);
 }
 

@@ -7,6 +7,7 @@ import {
   generateAbilityCode,
   generateItemCode,
   generateStatusCode,
+  generateEncountersCode,
 } from "@/lib/poke-codegen";
 
 // GET /api/export?projectId=... — produce a downloadable JSON bundle of all generated code
@@ -18,13 +19,14 @@ export async function GET(req: NextRequest) {
   const project = await db.project.findUnique({ where: { id: projectId } });
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
 
-  const [species, moves, types, abilities, items, statuses] = await Promise.all([
+  const [species, moves, types, abilities, items, statuses, encounters] = await Promise.all([
     db.species.findMany({ where: { projectId }, include: { learnsetMoves: { orderBy: { level: "asc" } }, evolutions: true } }),
     db.move.findMany({ where: { projectId } }),
     db.type.findMany({ where: { projectId } }),
     db.ability.findMany({ where: { projectId } }),
     db.item.findMany({ where: { projectId } }),
     db.statusCondition.findMany({ where: { projectId } }),
+    db.wildEncounter.findMany({ where: { projectId }, orderBy: [{ mapLabel: "asc" }, { method: "asc" }] }),
   ]);
 
   const knownTypeConsts = [
@@ -118,6 +120,27 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // Wild encounters JSON
+  if (encounters.length > 0) {
+    files.push({
+      path: "patch/wild_encounters.json",
+      content: generateEncountersCode(
+        encounters.map((e) => ({
+          mapLabel: e.mapLabel,
+          location: e.location,
+          method: e.method,
+          speciesConstant: e.speciesConstant,
+          minLevel: e.minLevel,
+          maxLevel: e.maxLevel,
+          encounterRate: e.encounterRate,
+          heldItemConstant: e.heldItemConstant,
+          formId: e.formId,
+        })),
+      ),
+      language: "json",
+    });
+  }
+
   // README
   const readme = `# PokeForge export — ${project.name}
 
@@ -146,6 +169,6 @@ Safety Center → Backups. Roll back there if a build breaks.
     project: { name: project.name, expansionVersion: project.expansionVersion },
     readme,
     files,
-    stats: { species: species.length, moves: moves.length, types: types.length, abilities: abilities.length, items: items.length, statuses: statuses.length },
+    stats: { species: species.length, moves: moves.length, types: types.length, abilities: abilities.length, items: items.length, statuses: statuses.length, encounters: encounters.length },
   });
 }

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, ChevronsUpDown, Copy, Eye, Loader2, Save, ShieldCheck, Plus, ArrowUp, ArrowDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, Copy, Eye, Loader2, Save, ShieldCheck, ShieldAlert, Plus, ArrowUp, ArrowDown, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
@@ -15,6 +15,8 @@ import {
   useValidate,
 } from "@/components/shared/entity-hooks";
 import { TypeBadge } from "@/components/shared/type-badge";
+import { StatRadar } from "@/components/shared/stat-radar";
+import { PlanViewer, usePlanWorkflow } from "@/components/shared/plan-viewer";
 import { PokeballIcon } from "@/components/app/pokeball-icon";
 import { generateSpeciesCode } from "@/lib/poke-codegen";
 import {
@@ -767,6 +769,9 @@ export function SpeciesEditor({
   const [tab, setTab] = useState("identity");
   const [validation, setValidation] = useState<ValidationIssue[] | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [plan, setPlan] = useState<any>(null);
+  const [planOpen, setPlanOpen] = useState(false);
+  const planWorkflow = usePlanWorkflow(currentProjectId!);
 
   // NOTE: This component is remounted by the parent (via `key`) whenever the
   // target species changes or the editor is reopened. We therefore seed the
@@ -836,6 +841,25 @@ export function SpeciesEditor({
           }
         },
         onError: () => toast.error("Validation request failed"),
+      },
+    );
+  }
+
+  function handleDryRun() {
+    const payload = buildPayload();
+    planWorkflow.generatePlan.mutate(
+      {
+        mode: species ? "edit" : "add",
+        entityType: "species",
+        entityId: species?.id,
+        data: payload as unknown as Record<string, unknown>,
+      },
+      {
+        onSuccess: (res) => {
+          setPlan(res.plan);
+          setPlanOpen(true);
+        },
+        onError: (e: Error) => toast.error(e.message),
       },
     );
   }
@@ -1156,6 +1180,23 @@ export function SpeciesEditor({
                           />
                         ))}
                       </div>
+                    </div>
+
+                    {/* Radar chart */}
+                    <div className="mt-3 rounded-md border border-border bg-card/50 p-3 text-foreground">
+                      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Radar visualization
+                      </p>
+                      <StatRadar
+                        stats={{
+                          baseHP: form.baseHP,
+                          baseAttack: form.baseAttack,
+                          baseDefense: form.baseDefense,
+                          baseSpeed: form.baseSpeed,
+                          baseSpAttack: form.baseSpAttack,
+                          baseSpDefense: form.baseSpDefense,
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -1827,6 +1868,21 @@ export function SpeciesEditor({
               type="button"
               variant="outline"
               size="sm"
+              onClick={handleDryRun}
+              disabled={planWorkflow.generatePlan.isPending}
+              className="border-amber-500/40 text-amber-600 hover:bg-amber-500/10 dark:text-amber-400"
+            >
+              {planWorkflow.generatePlan.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ShieldAlert className="h-3.5 w-3.5" />
+              )}
+              Dry-Run Plan
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
               onClick={() => setShowPreview(true)}
             >
               <Eye className="h-3.5 w-3.5" /> Preview code
@@ -1858,6 +1914,26 @@ export function SpeciesEditor({
           </div>
         </div>
       </SheetContent>
+
+      {/* Dry-Run Plan Viewer */}
+      <PlanViewer
+        open={planOpen}
+        onOpenChange={setPlanOpen}
+        plan={plan}
+        applying={planWorkflow.applyPlan.isPending}
+        onApply={() => {
+          if (plan?.planId) {
+            planWorkflow.applyPlan.mutate(plan.planId, {
+              onSuccess: () => {
+                toast.success("Plan applied — backup created");
+                setPlanOpen(false);
+                onOpenChange(false);
+              },
+              onError: (e: Error) => toast.error(e.message),
+            });
+          }
+        }}
+      />
 
       {/* Code preview dialog */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>

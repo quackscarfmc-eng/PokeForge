@@ -8,7 +8,7 @@ import {
   validateItem,
   validateStatus,
 } from "@/lib/poke-codegen";
-import { POKEMON_TYPES } from "@/lib/poke-constants";
+import { POKEMON_TYPES, BUILTIN_ABILITIES } from "@/lib/poke-constants";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       db.ability.findMany({ where: { projectId }, select: { constantName: true } }),
     ]);
     const knownTypes = [...POKEMON_TYPES.map((t) => t.constant), ...types.map((t) => t.constantName)];
-    const knownAbilities = abilities.map((a) => a.constantName);
+    const knownAbilities = [...BUILTIN_ABILITIES.map((a) => a.constant), ...abilities.map((a) => a.constantName)];
     const knownMoves: string[] = (await db.move.findMany({ where: { projectId }, select: { constantName: true } })).map(
       (m) => m.constantName,
     );
