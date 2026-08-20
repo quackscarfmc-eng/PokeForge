@@ -627,3 +627,43 @@ Stage Summary:
 - **1 new feature**: Pokémon Comparer (side-by-side stats/attributes/learnset comparison with dual radar charts).
 - App now has **15 views** (up from 14), **15 sidebar nav items**.
 - Zero bugs, zero console errors, clean lint.
+
+---
+Task ID: 14 — Continuous Improvement Round 7 (Cron-triggered)
+Agent: main (webDevReview)
+
+Work Log:
+- Reviewed worklog.md: app has 15 views, 8 content types, evolution chains, comparer, type calculator, global search, theme toggle, dashboard charts, all editors with dry-run buttons. Stable with zero console errors.
+- Performed QA via agent-browser: all 15 views navigated correctly, zero console errors, clean lint. Confirmed stable baseline.
+- Identified two improvements: a duplicate entity quick action and a recent activity timeline.
+
+New features built:
+1. **Duplicate Species** (API + UI): 
+   - Added `POST /api/species/[id]?action=duplicate` endpoint that clones a species with all its stats, types, abilities, learnset moves, flags, and sprite data — assigns a new species ID from `project.nextSpeciesId`, names it "<Name> Copy" with constant "<CONSTANT>_COPY", and bumps the next ID.
+   - Added a blue "Duplicate" button (Copy icon) to each species card's hover actions, between Edit and Delete.
+   - Uses a `useMutation` that calls the duplicate endpoint and invalidates the species + project queries on success, with a toast notification.
+   - Verified: clicking duplicate on a species increased the count from 2 to 3, and next ID bumped from 1526 to 1527.
+
+2. **Recent Activity timeline** (Dashboard):
+   - Added a "Recent Activity" card to the dashboard showing the latest 5 backups and 5 build checks, sorted by date (most recent first), capped at 8 items.
+   - Each item has a colored icon (blue clock for backups, emerald check for passed builds, red X for failed builds), a label, detail text (entity type for backups, error count + duration for builds), and a timestamp.
+   - Scrollable container with custom scrollbar.
+   - Empty state message when no activity exists.
+
+Files updated (2):
+- `src/app/api/species/[id]/route.ts` — added POST handler for `?action=duplicate`
+- `src/components/modules/species/species-view.tsx` — added Copy icon import, useMutation + useQueryClient, duplicateMut, onDuplicate prop on SpeciesCard, duplicate button in card actions
+- `src/components/modules/dashboard.tsx` — added backups query + Recent Activity timeline card
+
+QA Results (agent-browser verified):
+- All 15 views navigate correctly.
+- Pokémon cards: "Duplicate this Pokémon" button present (2 cards confirmed).
+- Duplicate action: clicking it increased species count from 2 to 3, next ID from 1526 to 1527.
+- Dashboard: "Recent Activity" card present, "Seed snapshot" backup entry visible.
+- Zero console errors throughout.
+- `bun run lint`: 0 errors, 0 warnings.
+
+Stage Summary:
+- **2 new features**: Duplicate Species (quick action), Recent Activity timeline (dashboard).
+- App remains at 15 views, 15 sidebar nav items.
+- Zero bugs, zero console errors, clean lint.

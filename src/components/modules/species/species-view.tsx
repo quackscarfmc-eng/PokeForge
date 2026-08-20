@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useEntities, useDeleteEntity } from "@/components/shared/entity-hooks";
 import { useAppStore } from "@/lib/store";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PageHeader, EmptyState, StatPill } from "@/components/shared/page-header";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -29,6 +29,7 @@ import {
   Search,
   Pencil,
   Trash2,
+  Copy,
   Loader2,
   Hash,
   Ruler,
@@ -45,6 +46,7 @@ export type { SpeciesWithNested } from "@/components/modules/species/species-edi
 
 export function SpeciesView() {
   const { currentProjectId } = useAppStore();
+  const qc = useQueryClient();
   const { data, isLoading } = useEntities<SpeciesWithNested>("species");
   const species = data?.species ?? [];
 
@@ -57,6 +59,23 @@ export function SpeciesView() {
   const [editorSession, setEditorSession] = useState(0);
 
   const deleteMut = useDeleteEntity("species");
+
+  const duplicateMut = useMutation({
+    mutationFn: async (id: string) => {
+      const r = await fetch(`/api/species/${id}?action=duplicate`, { method: "POST" });
+      if (!r.ok) {
+        const e = await r.json();
+        throw new Error(e.error || "Failed to duplicate");
+      }
+      return r.json();
+    },
+    onSuccess: () => {
+      toast.success("Pokémon duplicated");
+      qc.invalidateQueries({ queryKey: ["species"] });
+      qc.invalidateQueries({ queryKey: ["project"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   // Fetch project (for nextSpeciesId prefill)
   const { data: projectData } = useQuery({
@@ -190,6 +209,7 @@ export function SpeciesView() {
               species={s}
               onEdit={() => openEdit(s)}
               onDelete={() => setDeleteTarget(s)}
+              onDuplicate={() => duplicateMut.mutate(s.id)}
             />
           ))}
         </div>
@@ -233,10 +253,12 @@ function SpeciesCard({
   species,
   onEdit,
   onDelete,
+  onDuplicate,
 }: {
   species: SpeciesWithNested;
   onEdit: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
 }) {
   // Parse JSON-string fields defensively
   let types: string[] = [];
@@ -388,6 +410,15 @@ function SpeciesCard({
             className="h-7 flex-1 gap-1 text-xs"
           >
             <Pencil className="h-3 w-3" /> Edit
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onDuplicate}
+            className="h-7 gap-1 border-blue-500/30 text-xs text-blue-600 hover:bg-blue-500/10 dark:text-blue-400"
+            title="Duplicate this Pokémon"
+          >
+            <Copy className="h-3 w-3" />
           </Button>
           <Button
             size="sm"

@@ -67,6 +67,16 @@ export function DashboardView() {
   });
   const lastBuild = buildData?.checks?.[0];
 
+  const { data: backupData } = useQuery({
+    queryKey: ["backups", currentProjectId],
+    queryFn: async () => {
+      const r = await fetch(`/api/backups?projectId=${currentProjectId}`);
+      return r.json();
+    },
+    enabled: !!currentProjectId,
+  });
+  const recentBackups = backupData?.backups ?? [];
+
   const { data: planData } = useQuery({
     queryKey: ["recent-plans", currentProjectId],
     queryFn: async () => {
@@ -311,6 +321,55 @@ export function DashboardView() {
           </Card>
         </div>
       )}
+
+      {/* Recent Activity timeline */}
+      <Card className="mt-4">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Recent Activity</CardTitle>
+          <CardDescription>Latest backups and build checks</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 max-h-64 overflow-y-auto custom-scroll">
+            {[...recentBackups.slice(0, 5).map((b: any) => ({
+              type: "backup",
+              label: b.label,
+              time: b.createdAt,
+              detail: b.entityConstant ? `${b.entityType} ${b.entityConstant}` : "Manual snapshot",
+            })), ...buildData?.checks?.slice(0, 5).map((c: any) => ({
+              type: "build",
+              label: c.ok ? "Build passed" : "Build failed",
+              time: c.createdAt,
+              detail: `${JSON.parse(c.errorsJson || "[]").length} errors · ${c.durationMs}ms`,
+            })) ?? []]
+              .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+              .slice(0, 8)
+              .map((item, i) => (
+                <div key={i} className="flex items-start gap-3 rounded-md border border-border bg-card/50 px-3 py-2">
+                  <div className={
+                    item.type === "backup"
+                      ? "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-blue-500"
+                      : item.label.includes("passed")
+                        ? "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500"
+                        : "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-500"
+                  }>
+                    {item.type === "backup" ? <Clock className="h-3.5 w-3.5" /> :
+                     item.label.includes("passed") ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-medium truncate">{item.label}</div>
+                    <div className="text-[10px] text-muted-foreground">{item.detail}</div>
+                  </div>
+                  <div className="shrink-0 text-[10px] text-muted-foreground">
+                    {new Date(item.time).toLocaleDateString()} {new Date(item.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                </div>
+              ))}
+            {recentBackups.length === 0 && (!buildData?.checks || buildData.checks.length === 0) && (
+              <p className="py-6 text-center text-sm text-muted-foreground">No activity yet. Run a build check or create a backup.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick start guide */}
       <Card className="mt-4">

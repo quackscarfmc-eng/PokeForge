@@ -85,3 +85,99 @@ export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: stri
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }
+
+// POST /api/species/[id]?action=duplicate — duplicate a species
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await ctx.params;
+    const { searchParams } = new URL(req.url);
+    const action = searchParams.get("action");
+
+    if (action !== "duplicate") {
+      return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+    }
+
+    const original = await db.species.findUnique({
+      where: { id },
+      include: { learnsetMoves: { orderBy: { level: "asc" } }, evolutions: true },
+    });
+    if (!original) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    const project = await db.project.findUnique({ where: { id: original.projectId } });
+    if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
+
+    const newId = project.nextSpeciesId;
+    const newName = `${original.speciesName} Copy`;
+    const newConstant = `${original.constantName}_COPY`;
+
+    const dup = await db.species.create({
+      data: {
+        projectId: original.projectId,
+        constantName: newConstant,
+        speciesId: newId,
+        speciesName: newName,
+        nationalDexNum: null,
+        hoennDexNum: null,
+        categoryName: original.categoryName,
+        description: original.description,
+        baseHP: original.baseHP,
+        baseAttack: original.baseAttack,
+        baseDefense: original.baseDefense,
+        baseSpeed: original.baseSpeed,
+        baseSpAttack: original.baseSpAttack,
+        baseSpDefense: original.baseSpDefense,
+        evYieldHP: original.evYieldHP,
+        evYieldAttack: original.evYieldAttack,
+        evYieldDefense: original.evYieldDefense,
+        evYieldSpeed: original.evYieldSpeed,
+        evYieldSpAttack: original.evYieldSpAttack,
+        evYieldSpDefense: original.evYieldSpDefense,
+        types: original.types,
+        catchRate: original.catchRate,
+        expYield: original.expYield,
+        genderRatio: original.genderRatio,
+        eggCycles: original.eggCycles,
+        friendship: original.friendship,
+        growthRate: original.growthRate,
+        eggGroups: original.eggGroups,
+        abilities: original.abilities,
+        bodyColor: original.bodyColor,
+        noFlip: original.noFlip,
+        height: original.height,
+        weight: original.weight,
+        frontPicSymbol: original.frontPicSymbol,
+        backPicSymbol: original.backPicSymbol,
+        iconSymbol: original.iconSymbol,
+        footprintSymbol: original.footprintSymbol,
+        paletteSymbol: original.paletteSymbol,
+        shinyPaletteSymbol: original.shinyPaletteSymbol,
+        frontAnimId: original.frontAnimId,
+        backAnimId: original.backAnimId,
+        frontPicWidth: original.frontPicWidth,
+        frontPicHeight: original.frontPicHeight,
+        backPicWidth: original.backPicWidth,
+        backPicHeight: original.backPicHeight,
+        cryId: original.cryId,
+        spriteFrontDataUrl: original.spriteFrontDataUrl,
+        flags: original.flags,
+        learnsetMoves: {
+          create: original.learnsetMoves.map((m) => ({
+            level: m.level,
+            moveConstant: m.moveConstant,
+          })),
+        },
+        evolutions: { create: [] },
+      },
+      include: { learnsetMoves: true, evolutions: true },
+    });
+
+    await db.project.update({
+      where: { id: original.projectId },
+      data: { nextSpeciesId: newId + 1 },
+    });
+
+    return NextResponse.json({ species: dup }, { status: 201 });
+  } catch (e) {
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
+}
