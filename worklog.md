@@ -538,3 +538,51 @@ Stage Summary:
 - **3 new features**: Type Calculator (battle simulator), theme toggle (light/dark/system), dashboard analytics charts (pie + bar).
 - App now has **13 views** (up from 12), **13 sidebar nav items**.
 - Zero bugs, zero console errors, clean lint.
+
+---
+Task ID: 12 — Continuous Improvement Round 5 (Cron-triggered)
+Agent: main (webDevReview)
+
+Work Log:
+- Reviewed worklog.md: app has 13 views, 8 content types, type calculator, theme toggle, dashboard charts, all editors with dry-run buttons, mobile sidebar. Stable with zero console errors.
+- Performed QA via agent-browser: all 13 views navigated correctly, zero console errors, clean lint. Confirmed stable baseline.
+- Identified new feature opportunities: evolution chain visualizer and global search.
+
+New features built:
+1. **Evolution Chains visualizer** (`src/components/modules/evolutions/evolutions-view.tsx`): a visual tree graph showing how custom Pokémon evolve:
+   - Builds evolution chains by finding root species (not targeted by any evolution) and recursively traversing evolution links
+   - Renders each chain as a tree with species nodes connected by evolution method badges (Lv. X, Trade, Item, etc.)
+   - Each node shows: sprite placeholder (colored by primary type), species name, constant name, type badges, BST total, species ID, mythical/legendary icons
+   - Connector lines with evolution method labels and icons (Zap for level, Star for item, ArrowRight for trade)
+   - Standalone species (no evolutions) shown in a separate card
+   - Stats: chain count, standalone count, total species
+   - Added to sidebar (Tools group), command palette (hint: e), page.tsx
+
+2. **Global Search** (integrated into Command Palette): the ⌘K command palette now searches across ALL entity types:
+   - When the palette opens, fetches all species, moves, types, abilities, items, and trainers in parallel
+   - Results are grouped by entity type with counts: "Pokémon (2)", "Moves (1)", "Types (1)", etc.
+   - Each result shows the entity name + constant name in mono
+   - Clicking a result navigates to that entity's view
+   - Color-coded icons per type (orange Pokémon, red moves, purple types, etc.)
+   - Uses cmdk's built-in fuzzy matching — typing "stell" finds "Stelluxe"
+
+Files created (1):
+- `src/components/modules/evolutions/evolutions-view.tsx` (Evolution chain tree visualizer)
+
+Files updated (4):
+- `src/lib/store.ts` — added "evolutions" to ViewId
+- `src/components/app/sidebar.tsx` — added Evolution Chains nav item + GitBranch icon
+- `src/components/app/command-palette.tsx` — added global search (fetches all entities, shows grouped results) + Evolution Chains in nav
+- `src/app/page.tsx` — wired EvolutionsView
+
+QA Results (agent-browser verified):
+- All 14 views navigate correctly (including new Evolution Chains).
+- Evolution Chains view: shows chains with "Chain: " heading, tree visualization renders.
+- Global Search: ⌘K opens palette, typing shows entity results grouped by type (e.g., "Pokémon (2)" with Stelluxe + Embrix, "Moves (1)" with Nebula Strike).
+- Zero console errors throughout.
+- `bun run lint`: 0 errors, 0 warnings.
+
+Stage Summary:
+- **2 new features**: Evolution Chains visualizer (tree graph), Global Search (in command palette).
+- App now has **14 views** (up from 13), **14 sidebar nav items**.
+- Zero bugs, zero console errors, clean lint.
