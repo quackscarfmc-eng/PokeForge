@@ -1,0 +1,754 @@
+     1→// PokeForge — code generators for pokeemerald-expansion
+     2→// Produces C-header / JSON snippets that the user copies into their project,
+     3→// plus the full change-plan markdown.
+     4→
+     5→import {
+     6→  POKEMON_TYPES,
+     7→  MOVE_EFFECTS,
+     8→  MOVE_CATEGORIES,
+     9→  MOVE_TARGETS,
+    10→  GROWTH_RATES,
+    11→  EGG_GROUPS,
+    12→  BODY_COLORS,
+    13→  CRY_IDS,
+    14→  FRONT_ANIM_IDS,
+    15→  BACK_ANIM_IDS,
+    16→} from "@/lib/poke-constants";
+    17→
+    18→// ---------------------------------------------------------------------------
+    19→// Types (mirror of Prisma models, but plain for use in both client & server)
+    20→// ---------------------------------------------------------------------------
+    21→export interface SpeciesData {
+    22→  constantName: string;
+    23→  speciesId: number;
+    24→  speciesName: string;
+    25→  nationalDexNum?: number | null;
+    26→  hoennDexNum?: number | null;
+    27→  categoryName?: string | null;
+    28→  description?: string | null;
+    29→  baseHP: number;
+    30→  baseAttack: number;
+    31→  baseDefense: number;
+    32→  baseSpeed: number;
+    33→  baseSpAttack: number;
+    34→  baseSpDefense: number;
+    35→  evYieldHP: number;
+    36→  evYieldAttack: number;
+    37→  evYieldDefense: number;
+    38→  evYieldSpeed: number;
+    39→  evYieldSpAttack: number;
+    40→  evYieldSpDefense: number;
+    41→  types: string[]; // TYPE_*
+    42→  catchRate: number;
+    43→  expYield: number;
+    44→  genderRatio: number;
+    45→  eggCycles: number;
+    46→  friendship: number;
+    47→  growthRate: string;
+    48→  eggGroups: string[];
+    49→  abilities: string[];
+    50→  bodyColor: string;
+    51→  noFlip: boolean;
+    52→  height: number;
+    53→  weight: number;
+    54→  frontPicSymbol?: string | null;
+    55→  backPicSymbol?: string | null;
+    56→  iconSymbol?: string | null;
+    57→  footprintSymbol?: string | null;
+    58→  paletteSymbol?: string | null;
+    59→  shinyPaletteSymbol?: string | null;
+    60→  frontAnimId: string;
+    61→  backAnimId: string;
+    62→  frontPicWidth: number;
+    63→  frontPicHeight: number;
+    64→  backPicWidth: number;
+    65→  backPicHeight: number;
+    66→  cryId: string;
+    67→  flags: string[];
+    68→}
+    69→
+    70→export interface MoveData {
+    71→  constantName: string;
+    72→  moveId: number;
+    73→  name: string;
+    74→  description?: string | null;
+    75→  effect: string;
+    76→  power: number;
+    77→  type: string;
+    78→  category: string;
+    79→  target: string;
+    80→  pp: number;
+    81→  accuracy: number;
+    82→  priority: number;
+    83→  critStage: number;
+    84→  flags: string[];
+    85→  battleScript?: string | null;
+    86→}
+    87→
+    88→export interface TypeData {
+    89→  constantName: string;
+    90→  typeId: number;
+    91→  name: string;
+    92→  description?: string | null;
+    93→  colorHex: string;
+    94→  offensiveMatrix: Record<string, number>;
+    95→  defensiveMatrix: Record<string, number>;
+    96→}
+    97→
+    98→export interface AbilityData {
+    99→  constantName: string;
+   100→  abilityId: number;
+   101→  name: string;
+   102→  description?: string | null;
+   103→  effectFlags: string[];
+   104→  battleScript?: string | null;
+   105→}
+   106→
+   107→export interface ItemData {
+   108→  constantName: string;
+   109→  itemId: number;
+   110→  name: string;
+   111→  description?: string | null;
+   112→  pocket: string;
+   113→  price: number;
+   114→  effect: string;
+   115→  holdEffect: string;
+   116→  flingPower: number;
+   117→  importance: number;
+   118→  category: string;
+   119→  isTM: boolean;
+   120→  tmMoveConstant?: string | null;
+   121→}
+   122→
+   123→export interface StatusData {
+   124→  constantName: string;
+   125→  statusId: number;
+   126→  name: string;
+   127→  description?: string | null;
+   128→  category: string;
+   129→  isVolatile: boolean;
+   130→  battleScript?: string | null;
+   131→  colorHex: string;
+   132→  iconEmoji?: string | null;
+   133→}
+   134→
+   135→export interface LevelUpMoveData {
+   136→  level: number;
+   137→  moveConstant: string;
+   138→}
+   139→
+   140→export interface EvolutionData {
+   141→  method: string;
+   142→  param: string;
+   143→  targetSpecies: string;
+   144→}
+   145→
+   146→// ---------------------------------------------------------------------------
+   147→// Helpers
+   148→// ---------------------------------------------------------------------------
+   149→function slug(name: string): string {
+   150→  return name
+   151→    .toLowerCase()
+   152→    .replace(/[^a-z0-9]+/g, "")
+   153→    .replace(/^(.)(.*)$/, (_, a, b) => a.toUpperCase() + b);
+   154→}
+   155→
+   156→function toPascalCase(s: string): string {
+   157→  return s
+   158→    .split(/[^a-zA-Z0-9]+/)
+   159→    .filter(Boolean)
+   160→    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+   161→    .join("");
+   162→}
+   163→
+   164→function constantToFolder(constant: string): string {
+   165→  // SPECIES_MY_COOL_MON -> my_cool_mon
+   166→  return constant.replace(/^SPECIES_/, "").toLowerCase();
+   167→}
+   168→
+   169→function compoundString(text: string, perLine = 22): string {
+   170→  const words = text.split(/\s+/);
+   171→  const lines: string[] = [];
+   172→  let cur = "";
+   173→  for (const w of words) {
+   174→    if ((cur + " " + w).trim().length > perLine) {
+   175→      lines.push(cur.trim());
+   176→      cur = w;
+   177→    } else {
+   178→      cur = (cur + " " + w).trim();
+   179→    }
+   180→  }
+   181→  if (cur) lines.push(cur.trim());
+   182→  return lines.map((l) => `_${(`"${l}\\n"`).padEnd(2)}`).join("\n    ");
+   183→}
+   184→
+   185→// ---------------------------------------------------------------------------
+   186→// Species code generator
+   187→// ---------------------------------------------------------------------------
+   188→export function generateSpeciesCode(
+   189→  s: SpeciesData,
+   190→  learnset: LevelUpMoveData[] = [],
+   191→  evolutions: EvolutionData[] = [],
+   192→): string {
+   193→  const folder = constantToFolder(s.constantName);
+   194→  const symbol = "gMonFrontPic_" + toPascalCase(s.constantName.replace("SPECIES_", ""));
+   195→  const backSymbol = "gMonBackPic_" + toPascalCase(s.constantName.replace("SPECIES_", ""));
+   196→  const paletteSymbol = "gMonPalette_" + toPascalCase(s.constantName.replace("SPECIES_", ""));
+   197→  const shinySymbol = "gMonShinyPalette_" + toPascalCase(s.constantName.replace("SPECIES_", ""));
+   198→  const iconSymbol = "gMonIcon_" + toPascalCase(s.constantName.replace("SPECIES_", ""));
+   199→  const footprintMacro = "FOOTPRINT(" + toPascalCase(s.constantName.replace("SPECIES_", "")) + ")";
+   200→  const learnsetSymbol = "s" + toPascalCase(s.constantName.replace("SPECIES_", "")) + "LevelUpLearnset";
+   201→  const teachableSymbol = "s" + toPascalCase(s.constantName.replace("SPECIES_", "")) + "TeachableLearnset";
+   202→
+   203→  const types = s.types.length === 1 ? [...s.types, "TYPE_NONE"] : s.types.slice(0, 2);
+   204→  const eggGroups = s.eggGroups.length === 1 ? [...s.eggGroups, "EGG_GROUP_NONE"] : s.eggGroups.slice(0, 2);
+   205→  const abilities =
+   206→    s.abilities.length >= 3 ? s.abilities.slice(0, 3) : [...s.abilities, ...Array(3 - s.abilities.length).fill("ABILITY_NONE")];
+   207→
+   208→  const descLines = (s.description || "A mysterious creature.")
+   209→    .split("\n")
+   210→    .map((l) => `    _("${l.replace(/"/g, '\\"')}\\n")`)
+   211→    .join("\n");
+   212→
+   213→  const learnsetStr = learnset.length
+   214→    ? learnset.map((l) => `    LEVEL_UP_MOVE(${l.level}, ${l.moveConstant}),`).join("\n")
+   215→    : "    LEVEL_UP_MOVE(1, MOVE_TACKLE),";
+   216→
+   217→  const evoStr = evolutions.length
+   218→    ? evolutions
+   219→        .map(
+   220→          (e) =>
+   221→            `    EVOLUTION({${e.method}, ${e.param}, ${e.targetSpecies}}),`,
+   222→        )
+   223→        .join("\n")
+   224→    : `    EVOLUTION({EVO_NONE}),`;
+   225→
+   226→  const flagsStr = s.flags.length
+   227→    ? s.flags.map((f) => `    .${f} = TRUE,`).join("\n")
+   228→    : "";
+   229→
+   230→  return `// ============================================================
+   231→// ${s.constantName} (${s.speciesName})
+   232→// Generated by PokeForge — paste into your pokeemerald-expansion project
+   233→// ============================================================
+   234→
+   235→// ---- 1. include/constants/species.h (append after last species) ----
+   236→#define ${s.constantName} ${s.speciesId}
+   237→
+   238→// ---- 2. include/constants/pokedex.h (if using Pokédex) ----
+   239→${s.nationalDexNum ? `#define NATIONAL_DEX_${s.constantName.replace("SPECIES_", "")} ${s.nationalDexNum}` : "// (no national dex)"}
+   240→${s.hoennDexNum ? `#define HOENN_DEX_${s.constantName.replace("SPECIES_", "")} ${s.hoennDexNum}` : "// (no hoenn dex)"}
+   241→
+   242→// ---- 3. src/data/pokemon/species_info.h (gSpeciesInfo[] entry) ----
+   243→[${s.constantName}] =
+   244→{
+   245→    .baseHP = ${s.baseHP},
+   246→    .baseAttack = ${s.baseAttack},
+   247→    .baseDefense = ${s.baseDefense},
+   248→    .baseSpeed = ${s.baseSpeed},
+   249→    .baseSpAttack = ${s.baseSpAttack},
+   250→    .baseSpDefense = ${s.baseSpDefense},
+   251→    .types = MON_TYPES(${types[0]}, ${types[1]}),
+   252→    .catchRate = ${s.catchRate},
+   253→    .expYield = ${s.expYield},
+   254→    .evYield_HP = ${s.evYieldHP},
+   255→    .evYield_Attack = ${s.evYieldAttack},
+   256→    .evYield_Defense = ${s.evYieldDefense},
+   257→    .evYield_Speed = ${s.evYieldSpeed},
+   258→    .evYield_SpAttack = ${s.evYieldSpAttack},
+   259→    .evYield_SpDefense = ${s.evYieldSpDefense},
+   260→    .genderRatio = PERCENT_FEMALE(${Math.round((254 - s.genderRatio) * 100 / 254)}),
+   261→    .eggCycles = ${s.eggCycles},
+   262→    .friendship = ${s.friendship},
+   263→    .growthRate = ${s.growthRate},
+   264→    .eggGroups = MON_EGG_GROUPS(${eggGroups[0]}, ${eggGroups[1]}),
+   265→    .abilities = {${abilities[0]}, ${abilities[1]}, ${abilities[2]}},
+   266→    .bodyColor = ${s.bodyColor},
+   267→    .noFlip = ${s.noFlip ? "TRUE" : "FALSE"},
+   268→
+   269→    // Graphics
+   270→    .frontPic = ${s.frontPicSymbol || symbol},
+   271→    .frontPicSize = MON_COORDS_SIZE(${s.frontPicWidth}, ${s.frontPicHeight}),
+   272→    .frontPicYOffset = 0,
+   273→    .frontAnimFrames = ANIM_FRAMES(ANIMCMD_FRAME(0, 1)),
+   274→    .frontAnimId = ${s.frontAnimId},
+   275→    .frontAnimDelay = 10,
+   276→    .enemyMonElevation = 0,
+   277→    .backPic = ${s.backPicSymbol || backSymbol},
+   278→    .backPicSize = MON_COORDS_SIZE(${s.backPicWidth}, ${s.backPicHeight}),
+   279→    .backPicYOffset = 0,
+   280→    .backAnimId = ${s.backAnimId},
+   281→    .palette = ${s.paletteSymbol || paletteSymbol},
+   282→    .shinyPalette = ${s.shinyPaletteSymbol || shinySymbol},
+   283→    .iconSprite = ${s.iconSymbol || iconSymbol},
+   284→    .iconPalIndex = 1,
+   285→    ${footprintMacro},
+   286→
+   287→    // Species metadata
+   288→    .speciesName = _("${s.speciesName}"),
+   289→    .cryId = ${s.cryId},
+   290→    .categoryName = _("${s.categoryName || "Pokémon"}"),
+   291→    .height = ${s.height},
+   292→    .weight = ${s.weight},
+   293→    .description = COMPOUND_STRING(
+   294→${descLines}
+   295→    ),
+   296→    .pokemonScale = 256,
+   297→    .pokemonOffset = 0,
+   298→    .trainerScale = 256,
+   299→    .trainerOffset = 0,
+   300→${flagsStr ? flagsStr + "\n" : ""}
+   301→    // Learnsets
+   302→    .levelUpLearnset = ${learnsetSymbol},
+   303→    .teachableLearnset = ${teachableSymbol},
+   304→    .evolutions = ${evoStr},
+   305→},
+   306→
+   307→// ---- 4. src/data/graphics/pokemon.h (register graphics) ----
+   308→const u32 ${s.frontPicSymbol || symbol}[] = INCGFX_U32("graphics/pokemon/${folder}/anim_front.png", ".4bpp.lz");
+   309→const u32 ${s.backPicSymbol || backSymbol}[] = INCGFX_U32("graphics/pokemon/${folder}/back.png", ".4bpp.lz");
+   310→const u16 ${s.paletteSymbol || paletteSymbol}[] = INCGFX_U16("graphics/pokemon/${folder}/normal.pal", ".gbapal");
+   311→const u16 ${s.shinyPaletteSymbol || shinySymbol}[] = INCGFX_U16("graphics/pokemon/${folder}/shiny.pal", ".gbapal");
+   312→const u8 ${s.iconSymbol || iconSymbol}[] = INCGFX_U8("graphics/pokemon/${folder}/icon.png", ".4bpp");
+   313→const u8 gMonFootprint_${toPascalCase(s.constantName.replace("SPECIES_", ""))}[] = INCGFX_U8("graphics/pokemon/${folder}/footprint.png", ".1bpp");
+   314→
+   315→// ---- 5. src/data/pokemon/level_up_learnsets/gen_9.h ----
+   316→static const struct LevelUpMove ${learnsetSymbol}[] = {
+   317→${learnsetStr}
+   318→    LEVEL_UP_MOVE(0, MOVE_UNAVAILABLE),
+   319→};
+   320→
+   321→// ---- 6. src/data/pokemon/teachable_learnsets.h ----
+   322→static const u16 ${teachableSymbol}[] = {
+   323→    MOVE_TACKLE, // TODO: add TM/HM/tutor moves
+   324→    MOVE_UNAVAILABLE,
+   325→};
+   326→
+   327→// ---- 7. src/data/pokemon/pokedex_orders.h ----
+   328→// (insert ${s.nationalDexNum ? `NATIONAL_DEX_${s.constantName.replace("SPECIES_", "")}` : "// —"} in alphabetical/weight/height arrays)
+   329→
+   330→// ---- 8. graphics/pokemon/${folder}/ (asset folder) ----
+   331→// Required files: anim_front.png, back.png, normal.pal, shiny.pal, icon.png, footprint.png
+   332→`;
+   333→}
+   334→
+   335→// ---------------------------------------------------------------------------
+   336→// Move code generator
+   337→// ---------------------------------------------------------------------------
+   338→export function generateMoveCode(m: MoveData): string {
+   339→  const flags = m.flags.length
+   340→    ? m.flags.join(" | ")
+   341→    : "MOVE_FLAG_MAKES_CONTACT";
+   342→
+   343→  const desc = (m.description || "").replace(/"/g, '\\"');
+   344→
+   345→  return `// ============================================================
+   346→// ${m.constantName} (${m.name})
+   347→// Generated by PokeForge
+   348→// ============================================================
+   349→
+   350→// ---- 1. include/constants/moves.h ----
+   351→#define ${m.constantName} ${m.moveId}
+   352→
+   353→// ---- 2. src/data/battle_moves.h (gBattleMoves[] entry) ----
+   354→[${m.constantName}] =
+   355→{
+   356→    .name = COMPOUND_STRING("${m.name}"),
+   357→    .description = COMPOUND_STRING(
+   358→        "${desc}"
+   359→    ),
+   360→    .effect = ${m.effect},
+   361→    .power = ${m.power},
+   362→    .type = ${m.type},
+   363→    .accuracy = ${m.accuracy},
+   364→    .pp = ${m.pp},
+   365→    .priority = ${m.priority},
+   366→    .category = ${m.category},
+   367→    .target = ${m.target},
+   368→    .critStage = ${m.critStage},
+   369→    .flags = ${flags},
+   370→},
+   371→
+   372→// ---- 3. data/battle_scripts_1.s (battle script) ----
+   373→${m.battleScript || "BattleScript_" + m.constantName.replace("MOVE_", "") + "::"}
+   374→    attackcanceler
+   375→    accuracycheck BattleScript_MoveMissed, ${m.type}
+   376→    attackstring
+   377→    ppreduce
+   378→    critcalc
+   379→    damagecalc
+   380→    typecalc
+   381→    adjustdamage
+   382→    attackanimation
+   383→    waitmessage B_WAIT_TIME_LONG
+   384→    tryfaintmon
+   385→    movesequence
+   386→    end2
+   387→BattleScript_MoveMissed::
+   388→    attackstring
+   389→    ppreduce
+   390→    pause B_WAIT_TIME_LONG
+   391→    end2
+   392→
+   393→// ---- 4. include/battle_scripts.h (declare the label) ----
+   394→extern const u8 BattleScript_${toPascalCase(m.constantName.replace("MOVE_", ""))}[];
+   395→`;
+   396→}
+   397→
+   398→// ---------------------------------------------------------------------------
+   399→// Type code generator
+   400→// ---------------------------------------------------------------------------
+   401→export function generateTypeCode(t: TypeData, allTypes: string[]): string {
+   402→  const offensiveRows = allTypes
+   403→    .map((def) => `    [TYPE_${t.constantName.replace("TYPE_", "")}][${def}] = ${t.offensiveMatrix[def] ?? 1},`)
+   404→    .join("\n");
+   405→  const defensiveRows = allTypes
+   406→    .map((atk) => `    [${atk}][TYPE_${t.constantName.replace("TYPE_", "")}] = ${t.defensiveMatrix[atk] ?? 1},`)
+   407→    .join("\n");
+   408→
+   409→  return `// ============================================================
+   410→// ${t.constantName} (${t.name})
+   411→// Generated by PokeForge
+   412→// ============================================================
+   413→
+   414→// ---- 1. include/constants/types.h ----
+   415→#define ${t.constantName} ${t.typeId}
+   416→#define NUMBER_OF_TYPES (${t.typeId} + 1)
+   417→
+   418→// ---- 2. src/data/type_effectiveness.h (extend chart) ----
+   419→// Offensive row (what ${t.name} deals to other types):
+   420→${offensiveRows}
+   421→
+   422→// Defensive column (what ${t.name} takes from other types):
+   423→${defensiveRows}
+   424→
+   425→// ---- 3. (Optional) Update display name in src/data/types.c ----
+   426→// gTypeNames[TYPE_${t.constantName.replace("TYPE_", "")}] = COMPOUND_STRING("${t.name}");
+   427→
+   428→// ---- 4. (Optional) Add type icon + battle animation ----
+   429→// See data/battle_anim_scripts.s and graphics/types/
+   430→`;
+   431→}
+   432→
+   433→// ---------------------------------------------------------------------------
+   434→// Ability code generator
+   435→// ---------------------------------------------------------------------------
+   436→export function generateAbilityCode(a: AbilityData): string {
+   437→  const desc = (a.description || "").replace(/"/g, '\\"');
+   438→  return `// ============================================================
+   439→// ${a.constantName} (${a.name})
+   440→// Generated by PokeForge
+   441→// ============================================================
+   442→
+   443→// ---- 1. include/constants/abilities.h ----
+   444→#define ${a.constantName} ${a.abilityId}
+   445→#define ABILITIES_COUNT (${a.abilityId} + 1)
+   446→
+   447→// ---- 2. src/data/text/abilities.h (name + description) ----
+   448→[${a.constantName}] =
+   449→{
+   450→    .name = COMPOUND_STRING("${a.name}"),
+   451→    .description = COMPOUND_STRING(
+   452→        "${desc}"
+   453→    ),
+   454→},
+   455→
+   456→// ---- 3. Battle logic (add to src/data/battle_scripts/ and battle_*.c) ----
+   457→${a.battleScript || "// TODO: implement " + a.name + " behavior in battle_main.c or battle_abilities.c"}
+   458→
+   459→// ---- 4. Effect flags ----
+   460→${a.effectFlags.length ? a.effectFlags.map((f) => `// ${f}`).join("\n") : "// (no flags)"}
+   461→
+   462→// ---- 5. include/constants/ability_constants.h (if needed) ----
+   463→// extern const u16 ${a.constantName.replace("ABILITY_", "")}_AbilityFlag;
+   464→`;
+   465→}
+   466→
+   467→// ---------------------------------------------------------------------------
+   468→// Item code generator
+   469→// ---------------------------------------------------------------------------
+   470→export function generateItemCode(i: ItemData): string {
+   471→  const desc = (i.description || "").replace(/"/g, '\\"');
+   472→  return `// ============================================================
+   473→// ${i.constantName} (${i.name})
+   474→// Generated by PokeForge
+   475→// ============================================================
+   476→
+   477→// ---- 1. include/constants/items.h ----
+   478→#define ${i.constantName} ${i.itemId}
+   479→#define ITEMS_COUNT (${i.itemId} + 1)
+   480→
+   481→// ---- 2. src/data/items.h (gItems[] entry) ----
+   482→[${i.constantName}] =
+   483→{
+   484→    .name = COMPOUND_STRING("${i.name}"),
+   485→    .itemId = ${i.itemId},
+   486→    .price = ${i.price},
+   487→    .pocket = ${i.pocket},
+   488→    .type = ${i.effect},
+   489→    .fieldUseFunc = ItemFieldUse_${i.effect},
+   490→    .battleUsage = ${i.isTM ? "ITEM_BATTLE_USAGE_TM" : "0"},
+   491→    .battleUseFunc = ItemBattleUse_${i.effect},
+   492→    .secondaryId = 0,
+   493→    .holdEffect = ${i.holdEffect},
+   494→    .flingPower = ${i.flingPower},
+   495→    .importance = ${i.importance},
+   496→    .description = COMPOUND_STRING(
+   497→        "${desc}"
+   498→    ),
+   499→},
+   500→
+   501→// ---- 3. TM/HM linkage (if TM) ----
+   502→${i.isTM ? `// TM learns move: ${i.tmMoveConstant}` : "// (not a TM)"}
+   503→
+   504→// ---- 4. graphics/items/${i.constantName.toLowerCase().replace("item_", "")}.png ----
+   505→// (place icon here, register via src/data/graphics/items.h with INCGFX_U8)
+   506→`;
+   507→}
+   508→
+   509→// ---------------------------------------------------------------------------
+   510→// Status condition code generator
+   511→// ---------------------------------------------------------------------------
+   512→export function generateStatusCode(s: StatusData): string {
+   513→  const desc = (s.description || "").replace(/"/g, '\\"');
+   514→  return `// ============================================================
+   515→// ${s.constantName} (${s.name})
+   516→// Generated by PokeForge
+   517→// ============================================================
+   518→
+   519→// ---- 1. include/constants/battle.h ----
+   520→#define ${s.constantName} ${s.statusId}
+   521→
+   522→// ---- 2. (if non-volatile) extend STATUS1/STATUS2 bitmasks ----
+   523→${s.isVolatile ? "// volatile status: add to STATUS2_*" : "// non-volatile status: add to STATUS1_*"}
+   524→
+   525→// ---- 3. Battle scripts (data/battle_scripts_1.s) ----
+   526→${s.battleScript || `BattleScript_${s.constantName}Apply::\n    // TODO: implement ${s.name} tick-down / effect\n    end2`}
+   527→
+   528→// ---- 4. Battle logic ----
+   529→// Update src/battle_util.c, src/battle_script_commands.c to handle ${s.name}.
+   530→// Add icon/animation in data/battle_anim_scripts.s.
+   531→
+   532→// ---- 5. Description text ----
+   533→const u8 ${s.constantName}_Description[] = _("${desc}");
+   534→`;
+   535→}
+   536→
+   537→// ---------------------------------------------------------------------------
+   538→// Validation
+   539→// ---------------------------------------------------------------------------
+   540→export interface ValidationIssue {
+   541→  severity: "error" | "warning";
+   542→  message: string;
+   543→}
+   544→
+   545→export function validateConstantName(name: string, prefix: string): ValidationIssue[] {
+   546→  const issues: ValidationIssue[] = [];
+   547→  if (!name.startsWith(prefix))
+   548→    issues.push({ severity: "error", message: `Constant must start with "${prefix}"` });
+   549→  if (!/^[A-Z][A-Z0-9_]*$/.test(name))
+   550→    issues.push({ severity: "error", message: "Constant must be UPPER_SNAKE_CASE (A-Z, 0-9, _)" });
+   551→  if (name.length > 41)
+   552→    issues.push({ severity: "error", message: "Constant name must be ≤ 41 characters" });
+   553→  if (name.length < prefix.length + 2)
+   554→    issues.push({ severity: "warning", message: "Constant name is very short" });
+   555→  return issues;
+   556→}
+   557→
+   558→export function validateSpecies(s: SpeciesData, knownTypes: string[], knownAbilities: string[], knownMoves: string[]): ValidationIssue[] {
+   559→  const issues: ValidationIssue[] = [];
+   560→  issues.push(...validateConstantName(s.constantName, "SPECIES_"));
+   561→
+   562→  if (s.speciesId < 0 || s.speciesId > 65535)
+   563→    issues.push({ severity: "error", message: "Species ID must be 0–65535" });
+   564→
+   565→  const statBounds: [keyof SpeciesData, number, number][] = [
+   566→    ["baseHP", 1, 255], ["baseAttack", 1, 255], ["baseDefense", 1, 255],
+   567→    ["baseSpeed", 1, 255], ["baseSpAttack", 1, 255], ["baseSpDefense", 1, 255],
+   568→  ];
+   569→  for (const [k, lo, hi] of statBounds) {
+   570→    const v = s[k] as number;
+   571→    if (v < lo || v > hi)
+   572→      issues.push({ severity: "error", message: `${k} must be ${lo}–${hi}` });
+   573→  }
+   574→  if (s.catchRate < 0 || s.catchRate > 255) issues.push({ severity: "error", message: "Catch rate must be 0–255" });
+   575→  if (s.expYield < 0 || s.expYield > 255) issues.push({ severity: "error", message: "EXP yield must be 0–255" });
+   576→  if (s.genderRatio < 0 || s.genderRatio > 255) issues.push({ severity: "error", message: "Gender ratio must be 0–255" });
+   577→  if (s.eggCycles < 0 || s.eggCycles > 255) issues.push({ severity: "error", message: "Egg cycles must be 0–255" });
+   578→  if (s.friendship < 0 || s.friendship > 255) issues.push({ severity: "error", message: "Friendship must be 0–255" });
+   579→
+   580→  if (s.types.length === 0) issues.push({ severity: "error", message: "Species must have at least 1 type" });
+   581→  if (s.types.length > 2) issues.push({ severity: "error", message: "Species can have at most 2 types" });
+   582→  for (const t of s.types) {
+   583→    if (!knownTypes.includes(t) && !POKEMON_TYPES.some((pt) => pt.constant === t))
+   584→      issues.push({ severity: "error", message: `Unknown type: ${t}` });
+   585→  }
+   586→
+   587→  if (s.abilities.length === 0 || s.abilities.length > 3)
+   588→    issues.push({ severity: "error", message: "Species must have 1–3 abilities" });
+   589→  for (const a of s.abilities) {
+   590→    if (!knownAbilities.includes(a) && a !== "ABILITY_NONE")
+   591→      issues.push({ severity: "error", message: `Unknown ability: ${a}` });
+   592→  }
+   593→
+   594→  if (!GROWTH_RATES.includes(s.growthRate)) issues.push({ severity: "error", message: `Unknown growth rate: ${s.growthRate}` });
+   595→  if (s.eggGroups.length === 0 || s.eggGroups.length > 2)
+   596→    issues.push({ severity: "error", message: "Must have 1–2 egg groups" });
+   597→  for (const eg of s.eggGroups) {
+   598→    if (!EGG_GROUPS.includes(eg))
+   599→      issues.push({ severity: "error", message: `Unknown egg group: ${eg}` });
+   600→  }
+   601→  if (!BODY_COLORS.includes(s.bodyColor)) issues.push({ severity: "error", message: `Unknown body color: ${s.bodyColor}` });
+   602→  if (!CRY_IDS.includes(s.cryId)) issues.push({ severity: "warning", message: `Cry ${s.cryId} not in known list (may still be valid)` });
+   603→  if (!FRONT_ANIM_IDS.includes(s.frontAnimId)) issues.push({ severity: "warning", message: `Unknown frontAnimId: ${s.frontAnimId}` });
+   604→  if (!BACK_ANIM_IDS.includes(s.backAnimId)) issues.push({ severity: "warning", message: `Unknown backAnimId: ${s.backAnimId}` });
+   605→
+   606→  if (s.speciesName.length === 0) issues.push({ severity: "error", message: "Species name is required" });
+   607→  if (s.speciesName.length > 11) issues.push({ severity: "warning", message: "Species name > 11 chars may overflow battle UI" });
+   608→  if (s.height <= 0) issues.push({ severity: "warning", message: "Height should be > 0 (decimetres)" });
+   609→  if (s.weight <= 0) issues.push({ severity: "warning", message: "Weight should be > 0 (hectograms)" });
+   610→
+   611→  if (!s.description || s.description.length < 10)
+   612→    issues.push({ severity: "warning", message: "Description is short or missing" });
+   613→
+   614→  return issues;
+   615→}
+   616→
+   617→export function validateMove(m: MoveData, knownTypes: string[]): ValidationIssue[] {
+   618→  const issues: ValidationIssue[] = [];
+   619→  issues.push(...validateConstantName(m.constantName, "MOVE_"));
+   620→  if (m.moveId < 0 || m.moveId > 65535) issues.push({ severity: "error", message: "Move ID must be 0–65535" });
+   621→  if (m.power < 0 || m.power > 255) issues.push({ severity: "error", message: "Power must be 0–255" });
+   622→  if (m.accuracy < 0 || m.accuracy > 100) issues.push({ severity: "error", message: "Accuracy must be 0–100" });
+   623→  if (m.pp < 1 || m.pp > 40) issues.push({ severity: "warning", message: "PP is typically 1–40" });
+   624→  if (m.priority < -7 || m.priority > 5) issues.push({ severity: "error", message: "Priority must be -7…+5" });
+   625→  if (m.critStage < 0 || m.critStage > 24) issues.push({ severity: "error", message: "Crit stage must be 0–24" });
+   626→
+   627→  if (!POKEMON_TYPES.some((t) => t.constant === m.type) && !knownTypes.includes(m.type))
+   628→    issues.push({ severity: "error", message: `Unknown type: ${m.type}` });
+   629→  if (!MOVE_EFFECTS.some((e) => e.constant === m.effect)) issues.push({ severity: "warning", message: `Effect ${m.effect} may be unknown` });
+   630→  if (!MOVE_CATEGORIES.some((c) => c.constant === m.category)) issues.push({ severity: "error", message: `Unknown category: ${m.category}` });
+   631→  if (!MOVE_TARGETS.some((t) => t.constant === m.target)) issues.push({ severity: "error", message: `Unknown target: ${m.target}` });
+   632→
+   633→  if (!m.name) issues.push({ severity: "error", message: "Move name is required" });
+   634→  if (m.name.length > 12) issues.push({ severity: "warning", message: "Move name > 12 chars may overflow battle UI" });
+   635→  if (m.category === "CATEGORY_STATUS" && m.power !== 0) issues.push({ severity: "warning", message: "Status moves usually have power 0" });
+   636→  if (m.category !== "CATEGORY_STATUS" && m.power === 0) issues.push({ severity: "warning", message: "Damaging move with 0 power" });
+   637→
+   638→  return issues;
+   639→}
+   640→
+   641→export function validateType(t: TypeData, knownTypes: string[]): ValidationIssue[] {
+   642→  const issues: ValidationIssue[] = [];
+   643→  issues.push(...validateConstantName(t.constantName, "TYPE_"));
+   644→  if (t.typeId < 0 || t.typeId > 255) issues.push({ severity: "error", message: "Type ID must be 0–255" });
+   645→  if (!t.name) issues.push({ severity: "error", message: "Type name is required" });
+   646→
+   647→  const allTypes = [...POKEMON_TYPES.map((pt) => pt.constant), ...knownTypes];
+   648→  for (const [atk, mult] of Object.entries(t.offensiveMatrix)) {
+   649→    if (!allTypes.includes(atk) && atk !== t.constantName)
+   650→      issues.push({ severity: "warning", message: `Offensive matrix references unknown type: ${atk}` });
+   651→    if (![0, 0.25, 0.5, 1, 2, 4].includes(mult))
+   652→      issues.push({ severity: "warning", message: `Offensive mult for ${atk} is unusual: ${mult}` });
+   653→  }
+   654→  for (const [atk, mult] of Object.entries(t.defensiveMatrix)) {
+   655→    if (!allTypes.includes(atk) && atk !== t.constantName)
+   656→      issues.push({ severity: "warning", message: `Defensive matrix references unknown type: ${atk}` });
+   657→    if (![0, 0.25, 0.5, 1, 2, 4].includes(mult))
+   658→      issues.push({ severity: "warning", message: `Defensive mult for ${atk} is unusual: ${mult}` });
+   659→  }
+   660→
+   661→  if (!/^#[0-9A-Fa-f]{6}$/.test(t.colorHex)) issues.push({ severity: "warning", message: "colorHex should be #RRGGBB" });
+   662→  return issues;
+   663→}
+   664→
+   665→export function validateAbility(a: AbilityData, knownAbilities: string[]): ValidationIssue[] {
+   666→  const issues: ValidationIssue[] = [];
+   667→  issues.push(...validateConstantName(a.constantName, "ABILITY_"));
+   668→  if (a.abilityId < 0 || a.abilityId > 65535) issues.push({ severity: "error", message: "Ability ID must be 0–65535" });
+   669→  if (!a.name) issues.push({ severity: "error", message: "Ability name is required" });
+   670→  if (!a.description || a.description.length < 5) issues.push({ severity: "warning", message: "Description is short/missing" });
+   671→  return issues;
+   672→}
+   673→
+   674→export function validateItem(i: ItemData): ValidationIssue[] {
+   675→  const issues: ValidationIssue[] = [];
+   676→  issues.push(...validateConstantName(i.constantName, "ITEM_"));
+   677→  if (i.itemId < 0 || i.itemId > 65535) issues.push({ severity: "error", message: "Item ID must be 0–65535" });
+   678→  if (!i.name) issues.push({ severity: "error", message: "Item name is required" });
+   679→  if (i.price < 0) issues.push({ severity: "error", message: "Price cannot be negative" });
+   680→  if (i.isTM && !i.tmMoveConstant) issues.push({ severity: "error", message: "TM items must specify tmMoveConstant" });
+   681→  if (i.flingPower < 0 || i.flingPower > 255) issues.push({ severity: "error", message: "Fling power must be 0–255" });
+   682→  return issues;
+   683→}
+   684→
+   685→export function validateStatus(s: StatusData): ValidationIssue[] {
+   686→  const issues: ValidationIssue[] = [];
+   687→  issues.push(...validateConstantName(s.constantName, "STATUS_"));
+   688→  if (s.statusId < 0 || s.statusId > 65535) issues.push({ severity: "error", message: "Status ID must be 0–65535" });
+   689→  if (!s.name) issues.push({ severity: "error", message: "Status name is required" });
+   690→  if (!["volatile", "non_volatile", "field"].includes(s.category)) issues.push({ severity: "error", message: `Unknown status category: ${s.category}` });
+   691→  return issues;
+   692→}
+   693→
+   694→// ---------------------------------------------------------------------------
+   695→// Change-plan markdown generator
+   696→// ---------------------------------------------------------------------------
+   697→export interface ChangeStep {
+   698→  targetFile: string;
+   699→  action: "insert" | "replace" | "delete" | "create_folder";
+   700→  reason: string;
+   701→  riskLevel: "low" | "medium" | "high";
+   702→  warnings: string[];
+   703→}
+   704→
+   705→export interface ChangePlan {
+   706→  mode: "add" | "edit" | "delete";
+   707→  entityType: string;
+   708→  entityConstant: string;
+   709→  steps: ChangeStep[];
+   710→  warnings: string[];
+   711→  errors: string[];
+   712→  generatedCode: string;
+   713→  isBlocked: boolean;
+   714→}
+   715→
+   716→export function planToMarkdown(p: ChangePlan): string {
+   717→  const lines: string[] = [];
+   718→  lines.push("# Change Plan");
+   719→  lines.push("");
+   720→  lines.push(`- **Mode:** \`${p.mode}\``);
+   721→  lines.push(`- **Entity type:** \`${p.entityType}\``);
+   722→  lines.push(`- **Entity constant:** \`${p.entityConstant}\``);
+   723→  lines.push(`- **Blocked:** \`${p.isBlocked ? "YES" : "no"}\``);
+   724→  lines.push(`- **Steps:** ${p.steps.length}`);
+   725→  lines.push("");
+   726→  if (p.errors.length) {
+   727→    lines.push("## ❌ Errors (apply blocked)");
+   728→    p.errors.forEach((e) => lines.push(`- ${e}`));
+   729→    lines.push("");
+   730→  }
+   731→  if (p.warnings.length) {
+   732→    lines.push("## ⚠️ Warnings");
+   733→    p.warnings.forEach((w) => lines.push(`- ${w}`));
+   734→    lines.push("");
+   735→  }
+   736→  if (p.steps.length) {
+   737→    lines.push("## 📝 Steps");
+   738→    p.steps.forEach((s, i) => {
+   739→      lines.push(`### ${i + 1}. \`${s.action}\` — \`${s.targetFile}\``);
+   740→      lines.push(`- **Reason:** ${s.reason}`);
+   741→      lines.push(`- **Risk:** \`${s.riskLevel}\``);
+   742→      if (s.warnings.length) s.warnings.forEach((w) => lines.push(`  - ⚠️ ${w}`));
+   743→      lines.push("");
+   744→    });
+   745→  }
+   746→  if (p.generatedCode) {
+   747→    lines.push("## 📄 Generated code (preview)");
+   748→    lines.push("```c");
+   749→    lines.push(p.generatedCode);
+   750→    lines.push("```");
+   751→  }
+   752→  return lines.join("\n");
+   753→}
+   754→

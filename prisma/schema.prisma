@@ -1,0 +1,366 @@
+// PokeForge — Custom Pokémon editor for pokeemerald-expansion
+// Prisma schema (SQLite)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Project — represents one pokeemerald-expansion codebase the user is editing
+// ---------------------------------------------------------------------------
+model Project {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  basePath        String? // absolute path to the user's local pokeemerald-expansion checkout
+  expansionVersion String? // e.g. "1.15.2"
+  nextSpeciesId   Int      @default(1524)
+  nextMoveId      Int      @default(920)
+  nextTypeId      Int      @default(20)
+  nextAbilityId   Int      @default(300)
+  nextItemId      Int      @default(5001)
+  nextStatusId    Int      @default(8)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  species         Species[]
+  moves           Move[]
+  types           Type[]
+  abilities      Ability[]
+  items          Item[]
+  statuses       StatusCondition[]
+  changePlans    ChangePlan[]
+  backups        Backup[]
+  buildChecks    BuildCheck[]
+}
+
+// ---------------------------------------------------------------------------
+// Species — a custom Pokémon
+// ---------------------------------------------------------------------------
+model Species {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Identity
+  constantName    String   @unique // SPECIES_MYMON
+  speciesId       Int      @unique // numeric id in species.h
+  speciesName     String   // display name "Mymon"
+  nationalDexNum  Int?
+  hoennDexNum     Int?
+  categoryName    String?  // "Mythical"
+  description     String?
+
+  // Base stats
+  baseHP          Int      @default(50)
+  baseAttack      Int      @default(50)
+  baseDefense     Int      @default(50)
+  baseSpeed       Int      @default(50)
+  baseSpAttack    Int      @default(50)
+  baseSpDefense   Int      @default(50)
+
+  // EV yields
+  evYieldHP       Int      @default(0)
+  evYieldAttack   Int      @default(0)
+  evYieldDefense  Int      @default(0)
+  evYieldSpeed    Int      @default(0)
+  evYieldSpAttack Int      @default(0)
+  evYieldSpDefense Int     @default(0)
+
+  // Types (JSON array of type constant names, up to 2)
+  types           String   @default("[]") // JSON: ["TYPE_FIRE","TYPE_FAIRY"]
+
+  // Core attributes
+  catchRate       Int      @default(45)
+  expYield        Int      @default(100)
+  genderRatio     Int      @default(127) // PERCENT_FEMALE(50)
+  eggCycles       Int      @default(20)
+  friendship      Int      @default(70)
+  growthRate      String   @default("GROWTH_MEDIUM_FAST")
+  eggGroups       String   @default("[]") // JSON: ["EGG_GROUP_FIELD","EGG_GROUP_FAIRY"]
+
+  // Abilities (JSON array, up to 3)
+  abilities      String   @default("[]") // JSON: ["ABILITY_STEADFAST","ABILITY_NONE","ABILITY_NONE"]
+
+  // Appearance
+  bodyColor       String   @default("BODY_COLOR_RED")
+  noFlip          Boolean  @default(false)
+  height         Int      @default(10) // decimetres
+  weight         Int      @default(250) // hectograms
+
+  // Graphics references (symbol names pointing to INCGFX assets)
+  frontPicSymbol String?
+  backPicSymbol  String?
+  iconSymbol     String?
+  footprintSymbol String?
+  paletteSymbol  String?
+  shinyPaletteSymbol String?
+  frontAnimId    String   @default("ANIM_V_JOLT")
+  backAnimId     String   @default("BACK_ANIM_CONCAVE_ARC_SMALL")
+  frontPicWidth  Int      @default(64)
+  frontPicHeight Int      @default(64)
+  backPicWidth   Int      @default(64)
+  backPicHeight  Int      @default(64)
+  cryId          String   @default("CRY_BULBASAUR")
+
+  // Sprite preview (uploaded PNG, stored as base64 data URL — small thumbnails only)
+  spriteFrontDataUrl String?
+
+  // Flags (JSON array of flag strings like ["isMythical"])
+  flags           String   @default("[]")
+
+  // Relations
+  learnsetMoves   LevelUpMove[]
+  evolutions      Evolution[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// LevelUpMove — one entry in a species' level-up learnset
+// ---------------------------------------------------------------------------
+model LevelUpMove {
+  id         String  @id @default(cuid())
+  speciesId  String
+  species    Species @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  level      Int
+  moveConstant String // MOVE_EMBER
+  createdAt  DateTime @default(now())
+
+  @@index([speciesId])
+}
+
+// ---------------------------------------------------------------------------
+// Evolution — one evolution path from a species
+// ---------------------------------------------------------------------------
+model Evolution {
+  id            String  @id @default(cuid())
+  speciesId     String
+  species       Species @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  method        String  // EVO_LEVEL | EVO_ITEM | EVO_TRADE | EVO_FRIENDSHIP | ...
+  param         String  // level number / item constant / etc.
+  targetSpecies String // SPECIES_X
+  createdAt     DateTime @default(now())
+
+  @@index([speciesId])
+}
+
+// ---------------------------------------------------------------------------
+// Move — a custom move
+// ---------------------------------------------------------------------------
+model Move {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  constantName    String   @unique // MOVE_MY_MOVE
+  moveId          Int      @unique
+  name            String
+  description     String?
+
+  // Battle data
+  effect          String   @default("EFFECT_HIT") // battle_move_effects.h
+  power           Int      @default(40)
+  type            String   @default("TYPE_NORMAL")
+  category        String   @default("CATEGORY_PHYSICAL") // PHYSICAL/SPECIAL/STATUS
+  target          String   @default("MOVE_TARGET_SELECTED")
+  pp              Int      @default(35)
+  accuracy        Int      @default(100)
+  priority        Int      @default(0)
+  critStage       Int      @default(0)
+
+  // Flags (JSON array)
+  flags           String   @default("[]") // ["MOVE_FLAG_MAKES_CONTACT", ...]
+
+  // Optional: contest, battle script name
+  battleScript    String?
+  contestType     String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// Type — a custom elemental type with effectiveness matrix
+// ---------------------------------------------------------------------------
+model Type {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  constantName    String   @unique // TYPE_MYTYPE
+  typeId          Int      @unique
+  name            String
+  description     String?
+
+  // Display
+  colorHex        String   @default("#8B5CF6")
+  iconEmoji       String?
+
+  // Effectiveness: JSON map of { "TYPE_FIRE": 2.0, "TYPE_WATER": 0.5, ... }
+  // This type attacking the target type.
+  offensiveMatrix String   @default("{}")
+  // Effectiveness: JSON map of { "TYPE_FIRE": 0.5, ... } — incoming type vs this type
+  defensiveMatrix String   @default("{}")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// Ability — a custom ability
+// ---------------------------------------------------------------------------
+model Ability {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  constantName    String   @unique // ABILITY_MYABILITY
+  abilityId       Int      @unique
+  name            String
+  description     String?
+  effectFlags     String   @default("[]") // JSON: ["ABILITY_FLAG_CANNOT_BE_SUPPRESSED"]
+  battleScript   String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// Item — a custom item (Pokéball, TM, held, key)
+// ---------------------------------------------------------------------------
+model Item {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  constantName    String   @unique // ITEM_MYITEM
+  itemId          Int      @unique
+  name            String
+  description     String?
+
+  pocket          String   @default("POCKET_ITEMS")
+  price           Int      @default(0)
+  effect          String   @default("ITEM_EFFECT_NONE")
+  holdEffect      String   @default("HOLD_EFFECT_NONE")
+  flingPower      Int      @default(0)
+  importance      Int      @default(0)
+  category        String   @default("ITEM_CATEGORY_ITEMS")
+
+  // TM/HM linkage
+  isTM            Boolean  @default(false)
+  tmMoveConstant  String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// StatusCondition — a custom status (volatile/non-volatile)
+// ---------------------------------------------------------------------------
+model StatusCondition {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  constantName    String   @unique // STATUS_MYSTATUS / STATUS_FIELD_MYSTATUS
+  statusId        Int      @unique
+  name            String
+  description     String?
+
+  category        String   @default("volatile") // volatile | non_volatile | field
+  isVolatile      Boolean  @default(true)
+  battleScript    String?
+  iconEmoji       String?
+  colorHex        String   @default("#A855F7")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// ChangePlan — a dry-run plan (validate -> dry-run -> apply)
+// ---------------------------------------------------------------------------
+model ChangePlan {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  mode            String   // add | edit | delete
+  entityType      String   // species | move | type | ability | item | status
+  entityConstant  String   // SPECIES_MYMON etc.
+  status          String   @default("draft") // draft | validated | applied | failed
+
+  stepsJson       String   @default("[]") // JSON array of ChangeStep
+  warningsJson    String   @default("[]")
+  errorsJson      String   @default("[]")
+  generatedCode   String?  // the C/JSON code that would be applied
+  summary         String?
+
+  isBlocked       Boolean  @default(false)
+  appliedAt       DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// Backup — a snapshot of the DB state before an apply (for rollback)
+// ---------------------------------------------------------------------------
+model Backup {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  label           String   // human-readable label
+  snapshotJson    String   // full JSON snapshot of all entities at backup time
+  entityType      String?  // what entity triggered the backup
+  entityConstant  String?
+  sizeBytes       Int      @default(0)
+
+  createdAt       DateTime @default(now())
+
+  @@index([projectId])
+}
+
+// ---------------------------------------------------------------------------
+// BuildCheck — result of running `make` against the workspace project
+// ---------------------------------------------------------------------------
+model BuildCheck {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  ok              Boolean
+  returncode      Int
+  stdout          String   @default("")
+  stderr          String   @default("")
+  errorsJson      String   @default("[]") // parsed gcc errors
+  warningsJson    String   @default("[]")
+  durationMs      Int      @default(0)
+  triggeredBy     String?  // manual | apply
+
+  createdAt       DateTime @default(now())
+
+  @@index([projectId])
+}
