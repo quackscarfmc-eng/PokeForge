@@ -14,6 +14,7 @@ export type ViewId =
   | "encounters"
   | "trainers"
   | "evolutions"
+  | "comparer"
   | "calculator"
   | "safety"
   | "export"

@@ -26,6 +26,7 @@ import {
   Users,
   Calculator,
   GitBranch,
+  GitCompare,
 } from "lucide-react";
 
 const COMMANDS: { id: ViewId; label: string; icon: typeof Flame; hint: string }[] = [
@@ -39,6 +40,7 @@ const COMMANDS: { id: ViewId; label: string; icon: typeof Flame; hint: string }[
   { id: "encounters", label: "Go to Encounters", icon: MapPin, hint: "8" },
   { id: "trainers", label: "Go to Trainers", icon: Users, hint: "9" },
   { id: "evolutions", label: "Go to Evolution Chains", icon: GitBranch, hint: "e" },
+  { id: "comparer", label: "Go to Comparer", icon: GitCompare, hint: "m" },
   { id: "calculator", label: "Go to Type Calculator", icon: Calculator, hint: "c" },
   { id: "safety", label: "Go to Safety Center", icon: ShieldCheck, hint: "s" },
 ];

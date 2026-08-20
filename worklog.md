@@ -586,3 +586,44 @@ Stage Summary:
 - **2 new features**: Evolution Chains visualizer (tree graph), Global Search (in command palette).
 - App now has **14 views** (up from 13), **14 sidebar nav items**.
 - Zero bugs, zero console errors, clean lint.
+
+---
+Task ID: 13 — Continuous Improvement Round 6 (Cron-triggered)
+Agent: main (webDevReview)
+
+Work Log:
+- Reviewed worklog.md: app has 14 views, 8 content types, evolution chains, global search, type calculator, theme toggle, dashboard charts, all editors with dry-run buttons. Stable with zero console errors.
+- Performed QA via agent-browser: all 14 views navigated correctly, zero console errors, clean lint. Confirmed stable baseline.
+- Identified new feature opportunity: a Pokémon comparer for balancing decisions.
+
+New features built:
+1. **Pokémon Comparer** (`src/components/modules/comparer/comparer-view.tsx`): a side-by-side comparison tool for balancing:
+   - Two dropdown selectors to pick any two custom Pokémon
+   - **Header comparison**: species cards with colored sprite placeholder, name, constant, type badges, BST
+   - **Base stats comparison**: mirrored bar layout with left/right values, colored bars, per-stat difference (+/-), winner highlighted in emerald
+   - **Dual radar charts**: each species gets a radar chart with the other species' stats overlaid as a dashed comparison polygon
+   - **BST row**: total comparison with difference
+   - **Attributes table**: 11 rows comparing types, abilities, catch rate, EXP yield, gender ratio, egg cycles, friendship, growth rate, egg groups, height, weight — each rendered with appropriate formatting
+   - **Learnset comparison**: side-by-side level-up move lists
+   - **Summary card**: highlights which species wins each stat category with "+N" indicators
+   - Added to sidebar (Tools group), command palette (hint: m), page.tsx
+
+Files created (1):
+- `src/components/modules/comparer/comparer-view.tsx` (Side-by-side Pokémon comparer)
+
+Files updated (4):
+- `src/lib/store.ts` — added "comparer" to ViewId
+- `src/components/app/sidebar.tsx` — added Comparer nav item + GitCompare icon
+- `src/components/app/command-palette.tsx` — added Comparer to palette (hint: m)
+- `src/app/page.tsx` — wired ComparerView
+
+QA Results (agent-browser verified):
+- All 15 views navigate correctly (including new Comparer).
+- Comparer: auto-selects Stelluxe vs Embrix, VS badge present, radar charts render (12 SVG polygons), Summary section present.
+- Zero console errors throughout.
+- `bun run lint`: 0 errors, 0 warnings.
+
+Stage Summary:
+- **1 new feature**: Pokémon Comparer (side-by-side stats/attributes/learnset comparison with dual radar charts).
+- App now has **15 views** (up from 14), **15 sidebar nav items**.
+- Zero bugs, zero console errors, clean lint.

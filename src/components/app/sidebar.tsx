@@ -20,6 +20,7 @@ import {
   X,
   Calculator,
   GitBranch,
+  GitCompare,
 } from "lucide-react";
 import { PokeballIcon } from "@/components/app/pokeball-icon";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ const NAV: { id: ViewId; label: string; icon: typeof Flame; group: string }[] = 
   { id: "encounters", label: "Encounters", icon: MapPin, group: "Content" },
   { id: "trainers", label: "Trainers", icon: Users, group: "Content" },
   { id: "evolutions", label: "Evolution Chains", icon: GitBranch, group: "Tools" },
+  { id: "comparer", label: "Comparer", icon: GitCompare, group: "Tools" },
   { id: "calculator", label: "Type Calculator", icon: Calculator, group: "Tools" },
   { id: "safety", label: "Safety Center", icon: ShieldCheck, group: "Tools" },
   { id: "export", label: "Export", icon: Package, group: "Tools" },
