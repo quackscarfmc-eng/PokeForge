@@ -59,6 +59,7 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
+import { DryRunButton } from "@/components/shared/dry-run-button";
 import { cn } from "@/lib/utils";
 import type { Item } from "@/components/modules/items/items-view";
 
@@ -562,6 +563,13 @@ export function ItemEditor({
             >
               <Code2 className="h-4 w-4" /> Preview code
             </Button>
+            <DryRunButton
+              entityType="item"
+              entityId={item?.id}
+              isEdit={isEdit}
+              data={data as unknown as Record<string, unknown>}
+              onApplied={() => onOpenChange(false)}
+            />
             <Button
               onClick={handleSave}
               disabled={saving}

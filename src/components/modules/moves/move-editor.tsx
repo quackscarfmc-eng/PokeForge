@@ -58,6 +58,7 @@ import {
   useValidate,
 } from "@/components/shared/entity-hooks";
 import { TypeBadge } from "@/components/shared/type-badge";
+import { DryRunButton } from "@/components/shared/dry-run-button";
 import {
   POKEMON_TYPES,
   MOVE_EFFECTS,
@@ -698,6 +699,29 @@ export function MoveEditor({ move, open, onOpenChange }: MoveEditorProps) {
                   </>
                 )}
               </Button>
+              <DryRunButton
+                entityType="move"
+                entityId={move?.id}
+                isEdit={isEdit}
+                data={{
+                  constantName: form.constantName,
+                  moveId: form.moveId,
+                  name: form.name,
+                  description: form.description || null,
+                  effect: form.effect,
+                  power: form.power,
+                  type: form.type,
+                  category: form.category,
+                  target: form.target,
+                  pp: form.pp,
+                  accuracy: form.accuracy,
+                  priority: form.priority,
+                  critStage: form.critStage,
+                  flags: form.flags,
+                  battleScript: form.battleScript || null,
+                } as Record<string, unknown>}
+                onApplied={() => onOpenChange(false)}
+              />
               <Button variant="ghost" size="sm" onClick={onPreview}>
                 <FileCode2 className="h-3.5 w-3.5" /> Preview code
               </Button>

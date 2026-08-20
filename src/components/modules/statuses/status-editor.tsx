@@ -56,6 +56,7 @@ import {
   FileCode,
   FileWarning,
 } from "lucide-react";
+import { DryRunButton } from "@/components/shared/dry-run-button";
 import { cn } from "@/lib/utils";
 import type { StatusCondition } from "@/components/modules/statuses/statuses-view";
 
@@ -581,6 +582,13 @@ export function StatusEditor({
             >
               <Code2 className="h-4 w-4" /> Preview code
             </Button>
+            <DryRunButton
+              entityType="status"
+              entityId={status?.id}
+              isEdit={isEdit}
+              data={data as unknown as Record<string, unknown>}
+              onApplied={() => onOpenChange(false)}
+            />
             <Button
               onClick={handleSave}
               disabled={saving}

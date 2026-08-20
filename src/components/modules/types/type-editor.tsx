@@ -55,6 +55,7 @@ import {
   XCircle,
   Copy,
 } from "lucide-react";
+import { DryRunButton } from "@/components/shared/dry-run-button";
 
 interface TypeRow {
   id: string;
@@ -469,6 +470,21 @@ export function TypeEditor({ type, open, onOpenChange, nextTypeId }: TypeEditorP
               <Sparkles className="mr-1.5 h-4 w-4" />
               Validate
             </Button>
+            <DryRunButton
+              entityType="type"
+              entityId={type?.id}
+              isEdit={!!type}
+              data={{
+                constantName,
+                typeId,
+                name,
+                description,
+                colorHex,
+                offensiveMatrix,
+                defensiveMatrix,
+              } as Record<string, unknown>}
+              onApplied={() => onOpenChange(false)}
+            />
             <Button
               size="sm"
               onClick={handleSave}

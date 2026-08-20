@@ -45,7 +45,7 @@ export default function Home() {
           {!currentProjectId ? (
             <ProjectPicker />
           ) : (
-            <div className="mx-auto max-w-[1400px] px-4 py-6 md:px-8 md:py-8">
+            <div key={view} className="animate-fade-in mx-auto max-w-[1400px] px-4 py-6 md:px-8 md:py-8">
               {view === "dashboard" && <DashboardView />}
               {view === "species" && <SpeciesView />}
               {view === "moves" && <MovesView />}

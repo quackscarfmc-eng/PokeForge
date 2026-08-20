@@ -423,3 +423,65 @@ Stage Summary:
 - **Styling polish**: comprehensive animation system (fade, scale, slide, shimmer, glow, hover-lift, button-press, focus-ring).
 - App now has **12 views** (up from 11), **8 content types** (up from 7), **12 sidebar nav items**.
 - Zero bugs, zero console errors, clean lint.
+
+---
+Task ID: 10 — Continuous Improvement Round 3 (Cron-triggered)
+Agent: main (webDevReview)
+
+Work Log:
+- Reviewed worklog.md: app has 12 views, 8 content types, stable with zero console errors.
+- Performed QA via agent-browser: all 12 views navigated correctly, zero console errors, clean lint. Confirmed stable baseline.
+- Identified key gap: the Dry-Run Plan button was only on the species editor — Moves, Types, Abilities, Items, and Statuses editors were missing it, so the safety workflow was incomplete for 5 of 6 content types.
+
+New features built:
+1. **Reusable DryRunButton component** (`src/components/shared/dry-run-button.tsx`): a drop-in component that any editor can add to its footer. It:
+   - Generates a dry-run plan via `/api/plan` with the current form data
+   - Opens the PlanViewer modal showing steps/risk/errors/generated code
+   - Handles "Apply" with auto-backup + cache invalidation
+   - Styled amber to match the existing species editor button
+   - Accepts `entityType`, `entityId`, `isEdit`, `data`, and `onApplied` callback props
+
+2. **Dry-Run Plan button added to ALL 5 remaining editors**:
+   - Moves editor: added between Validate and Preview code
+   - Types editor: added between Validate and Save
+   - Abilities editor: added between Validate and Save
+   - Items editor: added after Preview code
+   - Statuses editor: added after Preview code
+   - Each passes the editor's current form data to the plan API
+
+3. **Mobile responsive sidebar** (focus area e): rewrote the sidebar with:
+   - Desktop: fixed 64-width sidebar (hidden on mobile)
+   - Mobile: hamburger button (fixed top-left, z-50) opens a left-side Sheet drawer
+   - Shared `NavContent` component for both desktop and mobile
+   - Active nav item now has a scale animation + dot indicator
+   - Smooth transitions on hover and active states
+
+4. **View transitions** (focus area e): added `key={view}` + `animate-fade-in` to the main content wrapper in page.tsx, so every view change triggers a smooth fade-in animation.
+
+5. **Sidebar active indicator**: active nav items now show a scale-110 icon animation + a small dot indicator on the right.
+
+Files created (1):
+- `src/components/shared/dry-run-button.tsx` (reusable Dry-Run button + viewer)
+
+Files updated (7):
+- `src/components/modules/moves/move-editor.tsx` — added DryRunButton import + button
+- `src/components/modules/types/type-editor.tsx` — added DryRunButton import + button
+- `src/components/modules/abilities/ability-editor.tsx` — added DryRunButton import + button
+- `src/components/modules/items/item-editor.tsx` — added DryRunButton import + button
+- `src/components/modules/statuses/status-editor.tsx` — added DryRunButton import + button
+- `src/components/app/sidebar.tsx` — rewrote with mobile drawer + active animations
+- `src/app/page.tsx` — added keyed view transition wrapper
+
+QA Results (agent-browser verified):
+- All 12 views navigate correctly with zero console errors.
+- **ALL 6 editors** (Pokémon, Moves, Types, Abilities, Items, Status) have the Dry-Run Plan button — confirmed by opening each editor and checking for "Dry-Run Plan" in the snapshot.
+- Moves editor Dry-Run: opens dialog showing "Ready to apply" with steps.
+- Mobile menu: "Open menu" button visible at 375px viewport.
+- `bun run lint`: 0 errors, 0 warnings.
+
+Stage Summary:
+- **Dry-Run Plan button now on ALL 6 content editors** — the safety workflow (Validate → Dry-Run → Apply) is complete for every entity type, not just species.
+- **Mobile responsive sidebar** with hamburger drawer — the app is now fully usable on mobile/tablet.
+- **View transitions** + sidebar animations for a more polished UX.
+- 1 new file, 7 files updated.
+- Zero bugs, zero console errors, clean lint.

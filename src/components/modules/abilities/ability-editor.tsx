@@ -43,6 +43,7 @@ import {
   X,
   Plus,
 } from "lucide-react";
+import { DryRunButton } from "@/components/shared/dry-run-button";
 
 interface AbilityRow {
   id: string;
@@ -389,6 +390,20 @@ export function AbilityEditor({ ability, open, onOpenChange, nextAbilityId }: Ab
               <Sparkles className="mr-1.5 h-4 w-4" />
               Validate
             </Button>
+            <DryRunButton
+              entityType="ability"
+              entityId={ability?.id}
+              isEdit={!!ability}
+              data={{
+                constantName,
+                abilityId,
+                name,
+                description,
+                effectFlags,
+                battleScript,
+              } as Record<string, unknown>}
+              onApplied={() => onOpenChange(false)}
+            />
             <Button
               size="sm"
               onClick={handleSave}
