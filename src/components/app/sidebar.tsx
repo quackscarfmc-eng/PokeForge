@@ -18,6 +18,7 @@ import {
   Users,
   Menu,
   X,
+  Calculator,
 } from "lucide-react";
 import { PokeballIcon } from "@/components/app/pokeball-icon";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ const NAV: { id: ViewId; label: string; icon: typeof Flame; group: string }[] = 
   { id: "statuses", label: "Status", icon: HeartCrack, group: "Content" },
   { id: "encounters", label: "Encounters", icon: MapPin, group: "Content" },
   { id: "trainers", label: "Trainers", icon: Users, group: "Content" },
+  { id: "calculator", label: "Type Calculator", icon: Calculator, group: "Tools" },
   { id: "safety", label: "Safety Center", icon: ShieldCheck, group: "Tools" },
   { id: "export", label: "Export", icon: Package, group: "Tools" },
   { id: "settings", label: "Settings", icon: Settings, group: "Tools" },

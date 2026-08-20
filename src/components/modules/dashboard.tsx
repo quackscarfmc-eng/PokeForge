@@ -2,6 +2,7 @@
 
 import { useAppStore } from "@/lib/store";
 import { useQuery } from "@tanstack/react-query";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { PageHeader, StatPill } from "@/components/shared/page-header";
 import { PokeballIcon } from "@/components/app/pokeball-icon";
 import {
@@ -223,6 +224,93 @@ export function DashboardView() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Content distribution charts */}
+      {(counts.species ?? 0) + (counts.moves ?? 0) + (counts.types ?? 0) > 0 && (
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Content Distribution</CardTitle>
+              <CardDescription>Breakdown of custom content by type</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: "Pokémon", value: counts.species ?? 0, color: "#EE8130" },
+                      { name: "Moves", value: counts.moves ?? 0, color: "#C22E28" },
+                      { name: "Types", value: counts.types ?? 0, color: "#6F35FC" },
+                      { name: "Abilities", value: counts.abilities ?? 0, color: "#F7D02C" },
+                      { name: "Items", value: counts.items ?? 0, color: "#7AC74C" },
+                      { name: "Status", value: counts.statuses ?? 0, color: "#A33EA1" },
+                      { name: "Encounters", value: counts.encounters ?? 0, color: "#3B82F6" },
+                      { name: "Trainers", value: counts.trainers ?? 0, color: "#EC4899" },
+                    ].filter((d) => d.value > 0)}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={70}
+                    innerRadius={40}
+                    paddingAngle={2}
+                  >
+                    {[
+                      "#EE8130", "#C22E28", "#6F35FC", "#F7D02C",
+                      "#7AC74C", "#A33EA1", "#3B82F6", "#EC4899",
+                    ].map((c, i) => (
+                      <Cell key={i} fill={c} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "var(--popover)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Content by Category</CardTitle>
+              <CardDescription>Bar chart comparison</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={[
+                  { name: "Pokémon", count: counts.species ?? 0, fill: "#EE8130" },
+                  { name: "Moves", count: counts.moves ?? 0, fill: "#C22E28" },
+                  { name: "Types", count: counts.types ?? 0, fill: "#6F35FC" },
+                  { name: "Abilities", count: counts.abilities ?? 0, fill: "#F7D02C" },
+                  { name: "Items", count: counts.items ?? 0, fill: "#7AC74C" },
+                  { name: "Status", count: counts.statuses ?? 0, fill: "#A33EA1" },
+                  { name: "Enc.", count: counts.encounters ?? 0, fill: "#3B82F6" },
+                  { name: "Trainers", count: counts.trainers ?? 0, fill: "#EC4899" },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "var(--popover)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                    cursor={{ fill: "var(--muted)" }}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Quick start guide */}
       <Card className="mt-4">

@@ -13,6 +13,7 @@ export type ViewId =
   | "statuses"
   | "encounters"
   | "trainers"
+  | "calculator"
   | "safety"
   | "export"
   | "settings";

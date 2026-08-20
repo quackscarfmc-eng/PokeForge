@@ -485,3 +485,56 @@ Stage Summary:
 - **View transitions** + sidebar animations for a more polished UX.
 - 1 new file, 7 files updated.
 - Zero bugs, zero console errors, clean lint.
+
+---
+Task ID: 11 — Continuous Improvement Round 4 (Cron-triggered)
+Agent: main (webDevReview)
+
+Work Log:
+- Reviewed worklog.md: app has 12 views, 8 content types, all editors have Dry-Run buttons, mobile sidebar, view transitions. Stable with zero console errors.
+- Performed QA via agent-browser: all 12 views navigated correctly, zero console errors, clean lint. Confirmed stable baseline.
+- Identified new feature opportunities: a type calculator/battle simulator tool, theme toggle, and dashboard analytics charts.
+
+New features built:
+1. **Type Calculator** (`src/components/modules/calculator/calculator-view.tsx`): a battle effectiveness simulator that:
+   - Lets users pick an attacking type and 1-2 defending types (dual-type combos)
+   - Calculates combined effectiveness using the canonical type chart + custom types' matrices
+   - Shows a large result card with the multiplier (0×/¼×/½×/1×/2×/4×), an icon, and a label ("Super effective", "Not very effective", etc.)
+   - Displays a full effectiveness grid sorted by multiplier, showing how the selected attacking type performs against ALL types
+   - Color-coded cells (emerald for super-effective, amber for not-very, red for 0×)
+   - Includes custom types with a star indicator
+   - Reset button to restore defaults
+   - Added to sidebar (Tools group), command palette, and page.tsx
+
+2. **Theme toggle** (in Topbar): a dropdown menu button with Sun/Moon/Monitor icons that lets users switch between Light, Dark, and System themes. Uses next-themes' `useTheme` hook. The app already had light/dark CSS variables defined but no toggle — now users can switch.
+
+3. **Dashboard analytics charts** (recharts): added two charts to the dashboard:
+   - **Content Distribution pie chart**: donut chart showing the breakdown of custom content by type (Pokémon, Moves, Types, etc.) with type-colored slices
+   - **Content by Category bar chart**: bar chart comparing counts across all 8 content types
+   - Both only render when there's custom content (conditional)
+   - Themed with CSS variables for seamless dark/light support
+   - Tooltip styled to match the app
+
+Files created (1):
+- `src/components/modules/calculator/calculator-view.tsx` (Type Calculator tool)
+
+Files updated (5):
+- `src/lib/store.ts` — added "calculator" to ViewId
+- `src/components/app/sidebar.tsx` — added Calculator nav item (Tools group) + Calculator icon import
+- `src/components/app/command-palette.tsx` — added Type Calculator to palette
+- `src/components/app/topbar.tsx` — added theme toggle dropdown (Sun/Moon/Monitor)
+- `src/components/modules/dashboard.tsx` — added recharts pie + bar charts
+- `src/app/page.tsx` — wired CalculatorView
+
+QA Results (agent-browser verified):
+- All 13 views navigate correctly (including new Type Calculator).
+- Dashboard shows "Content Distribution" chart (2 SVG chart surfaces = pie + bar confirmed).
+- Type Calculator: attacking type selector works, defending type buttons clickable, result card shows, "Effectiveness vs All" grid present (23 type cells).
+- Theme toggle: button present, dropdown opens with Light/Dark/System options, Dark theme applied (document.className = "dark").
+- Zero console errors throughout.
+- `bun run lint`: 0 errors, 0 warnings.
+
+Stage Summary:
+- **3 new features**: Type Calculator (battle simulator), theme toggle (light/dark/system), dashboard analytics charts (pie + bar).
+- App now has **13 views** (up from 12), **13 sidebar nav items**.
+- Zero bugs, zero console errors, clean lint.

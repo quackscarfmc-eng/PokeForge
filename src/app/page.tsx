@@ -12,6 +12,7 @@ import { ItemsView } from "@/components/modules/items/items-view";
 import { StatusesView } from "@/components/modules/statuses/statuses-view";
 import { EncountersView } from "@/components/modules/encounters/encounters-view";
 import { TrainersView } from "@/components/modules/trainers/trainers-view";
+import { CalculatorView } from "@/components/modules/calculator/calculator-view";
 import { SafetyView } from "@/components/modules/safety/safety-view";
 import { ExportView } from "@/components/modules/export/export-view";
 import { SettingsView } from "@/components/modules/settings/settings-view";
@@ -55,6 +56,7 @@ export default function Home() {
               {view === "statuses" && <StatusesView />}
               {view === "encounters" && <EncountersView />}
               {view === "trainers" && <TrainersView />}
+              {view === "calculator" && <CalculatorView />}
               {view === "safety" && <SafetyView />}
               {view === "export" && <ExportView />}
               {view === "settings" && <SettingsView />}

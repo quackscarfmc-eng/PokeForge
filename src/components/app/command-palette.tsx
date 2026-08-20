@@ -23,6 +23,7 @@ import {
   Search,
   MapPin,
   Users,
+  Calculator,
 } from "lucide-react";
 
 const COMMANDS: { id: ViewId; label: string; icon: typeof Flame; hint: string }[] = [
@@ -35,7 +36,8 @@ const COMMANDS: { id: ViewId; label: string; icon: typeof Flame; hint: string }[
   { id: "statuses", label: "Go to Status", icon: HeartCrack, hint: "7" },
   { id: "encounters", label: "Go to Encounters", icon: MapPin, hint: "8" },
   { id: "trainers", label: "Go to Trainers", icon: Users, hint: "9" },
-  { id: "safety", label: "Go to Safety Center", icon: ShieldCheck, hint: "0" },
+  { id: "calculator", label: "Go to Type Calculator", icon: Calculator, hint: "c" },
+  { id: "safety", label: "Go to Safety Center", icon: ShieldCheck, hint: "s" },
 ];
 
 export function CommandPalette() {

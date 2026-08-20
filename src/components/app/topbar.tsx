@@ -2,7 +2,8 @@
 
 import { useAppStore } from "@/lib/store";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ShieldCheck, ShieldAlert, GitBranch, Command as CommandIcon } from "lucide-react";
+import { useTheme } from "next-themes";
+import { ChevronDown, ShieldCheck, ShieldAlert, GitBranch, Command as CommandIcon, Sun, Moon, Monitor } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -10,11 +11,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { PokeballIcon } from "@/components/app/pokeball-icon";
 
 export function Topbar() {
   const { currentProjectId, setProject, setView } = useAppStore();
+  const { theme, setTheme } = useTheme();
 
   const { data: projectsData } = useQuery({
     queryKey: ["projects"],
@@ -82,6 +91,26 @@ export function Topbar() {
         <CommandIcon className="h-3 w-3" />
         <kbd className="hidden font-sans text-[10px] sm:inline">⌘K</kbd>
       </button>
+
+      {/* Theme toggle */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon" className="h-8 w-8 border-border" title="Toggle theme">
+            {theme === "dark" ? <Moon className="h-4 w-4" /> : theme === "light" ? <Sun className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setTheme("light")}>
+            <Sun className="mr-2 h-4 w-4" /> Light
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("dark")}>
+            <Moon className="mr-2 h-4 w-4" /> Dark
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("system")}>
+            <Monitor className="mr-2 h-4 w-4" /> System
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {currentProjectId && (
         <div className="hidden items-center gap-2 md:flex">
