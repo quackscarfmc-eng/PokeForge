@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { useMemo, useState } from "react";
-import { Search, Plus, Pencil, Trash2, Swords, Sword, Zap, Sparkles } from "lucide-react";
-import { useEntities, useDeleteEntity } from "@/components/shared/entity-hooks";
+import { Search, Plus, Pencil, Trash2, Swords, Sword, Zap, Sparkles, Copy } from "lucide-react";
+import { useEntities, useDeleteEntity, useDuplicateEntity } from "@/components/shared/entity-hooks";
 import { PageHeader, EmptyState, StatPill } from "@/components/shared/page-header";
 import { TypeBadge } from "@/components/shared/type-badge";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -67,6 +67,7 @@ export function MovesView() {
   const moves = data?.moves ?? [];
 
   const deleteMove = useDeleteEntity("moves");
+  const duplicateMove = useDuplicateEntity("moves");
 
   const [search, setSearch] = useState("");
   const [editorOpen, setEditorOpen] = useState(false);
@@ -286,6 +287,20 @@ export function MovesView() {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                className="h-8 w-8 text-blue-500 hover:bg-blue-500/10 hover:text-blue-600"
+                                onClick={() => duplicateMove.mutate(m.id)}
+                              >
+                                <Copy className="h-3.5 w-3.5" />
+                                <span className="sr-only">Duplicate</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Duplicate move</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-600"
                                 onClick={() => setDeleteTarget(m)}
                               >
@@ -354,6 +369,14 @@ export function MovesView() {
                           onClick={() => openEdit(m)}
                         >
                           <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-blue-500 hover:bg-blue-500/10 hover:text-blue-600"
+                          onClick={() => duplicateMove.mutate(m.id)}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           variant="ghost"

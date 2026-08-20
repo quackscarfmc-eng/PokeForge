@@ -4,6 +4,7 @@ import { useAppStore } from "@/lib/store";
 import { useQuery } from "@tanstack/react-query";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { PageHeader, StatPill } from "@/components/shared/page-header";
+import { OnboardingBanner } from "@/components/shared/onboarding-banner";
 import { PokeballIcon } from "@/components/app/pokeball-icon";
 import {
   Card,
@@ -103,6 +104,7 @@ export function DashboardView() {
 
   return (
     <div>
+      <OnboardingBanner />
       <PageHeader
         title={project?.name ?? "Dashboard"}
         description={

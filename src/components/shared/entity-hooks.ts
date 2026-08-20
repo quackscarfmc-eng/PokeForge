@@ -106,3 +106,23 @@ export function useValidate() {
     },
   });
 }
+
+export function useDuplicateEntity(entity: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const r = await fetch(`/api/${entity}/${id}?action=duplicate`, { method: "POST" });
+      if (!r.ok) {
+        const e = await r.json();
+        throw new Error(e.error || "Failed to duplicate");
+      }
+      return r.json();
+    },
+    onSuccess: () => {
+      toast.success(`${entity} duplicated`);
+      qc.invalidateQueries({ queryKey: [entity] });
+      qc.invalidateQueries({ queryKey: ["project"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}

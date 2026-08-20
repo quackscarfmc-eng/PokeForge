@@ -667,3 +667,59 @@ Stage Summary:
 - **2 new features**: Duplicate Species (quick action), Recent Activity timeline (dashboard).
 - App remains at 15 views, 15 sidebar nav items.
 - Zero bugs, zero console errors, clean lint.
+
+---
+Task ID: 15 — Continuous Improvement Round 8 (Cron-triggered)
+Agent: main (webDevReview)
+
+Work Log:
+- Reviewed worklog.md: app has 15 views, 8 content types, duplicate on species, recent activity timeline, evolution chains, comparer, type calculator, global search, theme toggle, dashboard charts. Stable with zero console errors.
+- Performed QA via agent-browser: all 15 views navigated correctly, zero console errors, clean lint. Confirmed stable baseline.
+- Identified improvements: extend duplicate to all entity types, add onboarding banner, add skeleton loaders.
+
+New features built:
+1. **Duplicate action for ALL entity types** (API + shared hook):
+   - Added `POST ?action=duplicate` handlers to moves, types, abilities, items, and statuses API routes — each clones the entity with all fields, assigns a new ID from the project's next-ID counter, names it "<Name> Copy" with "<CONSTANT>_COPY", and bumps the next ID.
+   - Created a reusable `useDuplicateEntity(entity)` hook in `entity-hooks.ts` that calls the duplicate endpoint, invalidates queries, and shows a toast.
+   - Added blue "Duplicate" buttons (Copy icon) to the Moves view hover actions (both table and mobile card layouts).
+   - Species already had duplicate from the previous round.
+
+2. **Onboarding banner** (`src/components/shared/onboarding-banner.tsx`):
+   - Shows on first visit to the dashboard (checks localStorage for dismissal)
+   - 3 tip cards: ⌘K Command Palette (clickable — opens the palette), Number Keys 1-0 (navigates to dashboard), Safety Workflow (goes to Safety Center)
+   - "Got it, dismiss" button stores dismissal in localStorage
+   - Uses lazy useState initializer to avoid setState-in-effect lint error
+   - Animated entrance (animate-fade-in)
+
+3. **Skeleton loaders** (`src/components/shared/skeleton.tsx`):
+   - `Skeleton` base component with shimmer animation
+   - `SpeciesCardSkeleton` — full card skeleton with sprite, name, type badges, stat bars
+   - `EntityListSkeleton` — grid of card skeletons
+   - `TableRowSkeleton` — skeleton rows for table views
+   - Ready to use in any view's loading state
+
+Files created (2):
+- `src/components/shared/onboarding-banner.tsx` (First-visit onboarding banner)
+- `src/components/shared/skeleton.tsx` (Skeleton loader components)
+
+Files updated (6):
+- `src/app/api/moves/[id]/route.ts` — added POST duplicate handler
+- `src/app/api/types/[id]/route.ts` — added POST duplicate handler
+- `src/app/api/abilities/[id]/route.ts` — added POST duplicate handler
+- `src/app/api/items/[id]/route.ts` — added POST duplicate handler
+- `src/app/api/statuses/[id]/route.ts` — added POST duplicate handler
+- `src/components/shared/entity-hooks.ts` — added useDuplicateEntity hook
+- `src/components/modules/moves/moves-view.tsx` — added Copy icon, duplicateMove, duplicate buttons in table + card
+- `src/components/modules/dashboard.tsx` — added OnboardingBanner
+
+QA Results (agent-browser verified):
+- All 15 views navigate correctly.
+- Dashboard: "Welcome to PokeForge!" onboarding banner visible with "Command Palette" tip.
+- Moves view: 2 duplicate buttons present (table + mobile card layouts).
+- Zero console errors throughout.
+- `bun run lint`: 0 errors, 0 warnings.
+
+Stage Summary:
+- **3 new features**: Duplicate action for all 6 entity types, Onboarding banner, Skeleton loaders.
+- App remains at 15 views, 15 sidebar nav items.
+- Zero bugs, zero console errors, clean lint.
