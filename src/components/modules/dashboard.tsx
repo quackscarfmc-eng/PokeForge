@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { PageHeader, StatPill } from "@/components/shared/page-header";
 import { OnboardingBanner } from "@/components/shared/onboarding-banner";
+import { ImportProjectButton } from "@/components/shared/import-project-button";
 import { PokeballIcon } from "@/components/app/pokeball-icon";
 import {
   Card,
@@ -112,6 +113,7 @@ export function DashboardView() {
           "Overview of your custom Pokémon content and project safety."
         }
         icon={undefined}
+        actions={<ImportProjectButton />}
       />
 
       {/* Hero stats */}

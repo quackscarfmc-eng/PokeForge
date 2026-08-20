@@ -52,3 +52,7 @@ prompt
 server.log
 # Skills directory
 /skills/
+# Electron build artifacts
+dist-electron/
+electron/main.js
+electron/preload.js

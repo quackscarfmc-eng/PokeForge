@@ -1,7 +1,10 @@
 {
-  "name": "nextjs_tailwind_shadcn_ts",
-  "version": "0.2.1",
-  "private": true,
+  "name": "pokeforge",
+  "version": "1.0.0",
+  "description": "Custom Pokémon editor for pokeemerald-expansion — desktop GUI",
+  "author": "PokeForge",
+  "license": "MIT",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
     "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
@@ -10,7 +13,61 @@
     "db:push": "prisma db push --accept-data-loss",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "seed": "bun run scripts/seed.ts",
+    "electron:dev": "bun run electron:compile && electron electron/main.js",
+    "electron:compile": "bun build electron/main.ts --outfile electron/main.js --target node && bun build electron/preload.ts --outfile electron/preload.js --target node",
+    "electron:build": "bun run build && bun run electron:compile && electron-builder --linux",
+    "electron:build:dir": "bun run build && bun run electron:compile && electron-builder --linux --dir"
+  },
+  "build": {
+    "appId": "com.pokeforge.app",
+    "productName": "PokeForge",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/main.js",
+      "electron/preload.js",
+      ".next/standalone/**/*",
+      ".next/static/**/*",
+      "public/**/*",
+      "prisma/**/*",
+      "db/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": ".next/standalone",
+        "to": "app/.next/standalone"
+      },
+      {
+        "from": ".next/static",
+        "to": "app/.next/static"
+      },
+      {
+        "from": "public",
+        "to": "app/public"
+      }
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "tar.gz"
+      ],
+      "category": "Development",
+      "icon": "public/logo.svg",
+      "maintainer": "PokeForge"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.developer-tools"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "public/logo.svg"
+    }
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -85,6 +142,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "bun-types": "^1.3.4",
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.3",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
     "tailwindcss": "^4",
