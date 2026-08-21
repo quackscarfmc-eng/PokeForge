@@ -1,4 +1,4 @@
-Yes I used AI. That's cuz I cant code for shite. Anyways:
+Yes I used AI. That's cuz I cant code for shite. Please help if you can. Anyways:
 
 Prerequisites
 Node.js 18+
